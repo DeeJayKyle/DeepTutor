@@ -6,7 +6,10 @@ cd "$(dirname "$0")/.."
 OLLAMA_VERSION="v0.40.4"
 
 echo "==> Installing Ollama ${OLLAMA_VERSION} from GitHub releases"
-sudo apt-get update -qq && sudo apt-get install -y -qq zstd >/dev/null
+# The base image ships an unused Yarn apt source whose signing key has expired; drop it so apt works.
+sudo rm -f /etc/apt/sources.list.d/yarn.list
+sudo apt-get update -qq
+sudo apt-get install -y -qq zstd >/dev/null
 curl -fsSL "https://github.com/ollama/ollama/releases/download/${OLLAMA_VERSION}/ollama-linux-amd64.tar.zst" \
   | zstd -d | sudo tar -x -C /usr/local
 
