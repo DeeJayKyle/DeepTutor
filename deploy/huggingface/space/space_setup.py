@@ -24,7 +24,15 @@ DATA = APP / "data"
 TOKEN = os.environ.get("DATA_SYNC_TOKEN", "").strip()
 DATA_REPO = os.environ.get("DATA_REPO", "").strip()
 # Runtime scratch, logs and caches are not worth backing up.
-IGNORE = [".cache/*", "user/logs/*", "user/runtime/*", "*/__pycache__/*", "*.lock", "*.pid", "*.sock"]
+IGNORE = [
+    ".cache/*",
+    "user/logs/*",
+    "user/runtime/*",
+    "*/__pycache__/*",
+    "*.lock",
+    "*.pid",
+    "*.sock",
+]
 
 
 def log(message: str) -> None:
@@ -37,7 +45,9 @@ def _backup_enabled() -> bool:
 
 def restore() -> None:
     if not _backup_enabled():
-        log("Data backup is off (DATA_SYNC_TOKEN/DATA_REPO not set): chats reset when the Space restarts.")
+        log(
+            "Data backup is off (DATA_SYNC_TOKEN/DATA_REPO not set): chats reset when the Space restarts."
+        )
         return
     from huggingface_hub import HfApi, snapshot_download
 
@@ -55,7 +65,9 @@ def _configure_auth() -> None:
     password = os.environ.get("ADMIN_PASSWORD", "")
     if len(password) < 8:
         # A public Space without a fixed admin would let the first visitor claim it.
-        sys.exit("[space] ADMIN_PASSWORD secret is missing or shorter than 8 characters; refusing to start.")
+        sys.exit(
+            "[space] ADMIN_PASSWORD secret is missing or shorter than 8 characters; refusing to start."
+        )
 
     from deeptutor.services.auth import hash_password, verify_password
     from deeptutor.services.config.runtime_settings import get_runtime_settings_service
@@ -63,7 +75,11 @@ def _configure_auth() -> None:
     service = get_runtime_settings_service()
     current = service.load_auth(include_process_overrides=False)
     password_hash = current.get("password_hash") or ""
-    if current.get("username") != username or not password_hash or not verify_password(password, password_hash):
+    if (
+        current.get("username") != username
+        or not password_hash
+        or not verify_password(password, password_hash)
+    ):
         password_hash = hash_password(password)
     service.save_auth(
         {
