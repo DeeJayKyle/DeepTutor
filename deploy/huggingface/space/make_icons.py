@@ -1,7 +1,7 @@
 """Build square app icons (192, 512, maskable 512) from DeepTutor's logo."""
 
-import sys
 from pathlib import Path
+import sys
 
 from PIL import Image
 

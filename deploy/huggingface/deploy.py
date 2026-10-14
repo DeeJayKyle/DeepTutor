@@ -8,11 +8,11 @@ with the Dockerfile pinned to the commit being deployed.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import re
+import shutil
 import sys
 import tempfile
-import shutil
-from pathlib import Path
 
 from huggingface_hub import HfApi
 
