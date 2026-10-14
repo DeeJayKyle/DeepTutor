@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Lora } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "@/components/ThemeScript";
@@ -33,6 +33,14 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+  // Installable web app (Android "Install app", desktop Chrome/Edge). Served as
+  // .json so the auth gate's static-asset exemption lets it through before login.
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, title: "DeepTutor" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1f1e1d",
 };
 
 export default function RootLayout({

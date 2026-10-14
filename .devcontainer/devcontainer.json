@@ -4,21 +4,16 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": { "version": "22" }
   },
-  // A local CPU model needs room; 4 cores / 16 GB is the smallest size that runs it comfortably.
-  "hostRequirements": { "cpus": 4, "memory": "16gb", "storage": "32gb" },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
   "containerEnv": {
-    "DEEPTUTOR_HOME": "/workspaces/.deeptutor-home",
-    "OLLAMA_MODELS": "/workspaces/.ollama-models",
-    "DEEPTUTOR_LLM_MODEL": "qwen2.5:3b",
-    "DEEPTUTOR_EMBED_MODEL": "nomic-embed-text"
+    "DEEPTUTOR_HOME": "/workspaces/.deeptutor-home"
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "postStartCommand": "bash .devcontainer/post-start.sh",
   "forwardPorts": [3782],
   "portsAttributes": {
     "3782": { "label": "DeepTutor", "onAutoForward": "openBrowser" },
-    "8001": { "label": "DeepTutor API", "onAutoForward": "silent" },
-    "11434": { "label": "Ollama", "onAutoForward": "silent" }
+    "8001": { "label": "DeepTutor API", "onAutoForward": "silent" }
   },
   "customizations": {
     "codespaces": { "openFiles": [".devcontainer/CODESPACES.md"] },

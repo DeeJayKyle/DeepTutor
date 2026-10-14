@@ -1,17 +1,7 @@
 #!/usr/bin/env bash
-# One-time Codespace setup: Ollama (local model), DeepTutor backend + web, default config.
+# One-time Codespace setup: DeepTutor backend + web, default config.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-
-OLLAMA_VERSION="v0.40.4"
-
-echo "==> Installing Ollama ${OLLAMA_VERSION} from GitHub releases"
-# The base image ships an unused Yarn apt source whose signing key has expired; drop it so apt works.
-sudo rm -f /etc/apt/sources.list.d/yarn.list
-sudo apt-get update -qq
-sudo apt-get install -y -qq zstd >/dev/null
-curl -fsSL "https://github.com/ollama/ollama/releases/download/${OLLAMA_VERSION}/ollama-linux-amd64.tar.zst" \
-  | zstd -d | sudo tar -x -C /usr/local
 
 echo "==> Installing DeepTutor (Python backend)"
 python -m venv .venv
@@ -22,26 +12,23 @@ echo "==> Installing DeepTutor web frontend"
 (cd web && npm ci --legacy-peer-deps --no-audit --no-fund)
 
 echo "==> Initialising DeepTutor settings in ${DEEPTUTOR_HOME}"
-mkdir -p "$DEEPTUTOR_HOME" "$OLLAMA_MODELS"
+mkdir -p "$DEEPTUTOR_HOME"
 .venv/bin/deeptutor init --non-interactive --home "$DEEPTUTOR_HOME"
 
-echo "==> Downloading local models (${DEEPTUTOR_LLM_MODEL}, ${DEEPTUTOR_EMBED_MODEL})"
-bash .devcontainer/start-ollama.sh
-ollama pull "$DEEPTUTOR_LLM_MODEL"
-ollama pull "$DEEPTUTOR_EMBED_MODEL"
-
-echo "==> Pointing DeepTutor at the local models"
-cat > "$DEEPTUTOR_HOME/codespace-setup.json" <<EOF
+# With a GEMINI_API_KEY Codespaces secret, point DeepTutor at Gemini automatically.
+if [ -n "${GEMINI_API_KEY:-}" ]; then
+  echo "==> Configuring Gemini"
+  cat > "$DEEPTUTOR_HOME/codespace-setup.json" <<'EOF'
 {
-  "llm": { "provider": "ollama", "model": "${DEEPTUTOR_LLM_MODEL}" },
-  "embedding": { "provider": "ollama", "model": "${DEEPTUTOR_EMBED_MODEL}", "dimension": 768 },
+  "llm": { "provider": "gemini", "model": "gemini-2.5-flash", "api_key_env": "GEMINI_API_KEY" },
+  "embedding": { "provider": "gemini", "model": "gemini-embedding-001", "api_key_env": "GEMINI_API_KEY" },
   "search": { "provider": "duckduckgo" }
 }
 EOF
-if .venv/bin/deeptutor config apply "$DEEPTUTOR_HOME/codespace-setup.json" --check --home "$DEEPTUTOR_HOME"; then
-  .venv/bin/deeptutor config apply "$DEEPTUTOR_HOME/codespace-setup.json" --home "$DEEPTUTOR_HOME"
+  .venv/bin/deeptutor config apply "$DEEPTUTOR_HOME/codespace-setup.json" --home "$DEEPTUTOR_HOME" \
+    || echo "!! Automatic model config was rejected; add a provider in Settings -> Providers."
 else
-  echo "!! Automatic model config was rejected; pick Ollama in Settings -> Providers instead."
+  echo "No GEMINI_API_KEY secret; add a model provider in Settings -> Providers."
 fi
 
 echo "Setup complete. DeepTutor starts automatically on port 3782 (the first start builds the web app)."
