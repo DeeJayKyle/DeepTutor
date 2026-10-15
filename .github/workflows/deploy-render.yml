@@ -1,0 +1,47 @@
+name: Deploy to Render
+
+# Creates/updates the free Render web service that runs the online server image.
+# Runs after every successful image build, or manually. Setup: deploy/README.md
+
+on:
+  workflow_run:
+    workflows: ["Build server image"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-render
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Hugging Face client
+        run: python -m pip install "huggingface_hub>=0.30,<2"
+
+      - name: Create or update the Render service
+        run: python deploy/render/deploy.py
+        env:
+          IMAGE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          ADMIN_USERNAME: ${{ vars.ADMIN_USERNAME }}
+          RENDER_SERVICE_NAME: ${{ vars.RENDER_SERVICE_NAME }}
+          RENDER_REGION: ${{ vars.RENDER_REGION }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          DATA_REPO: ${{ vars.DATA_REPO }}

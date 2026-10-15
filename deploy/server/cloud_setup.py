@@ -1,10 +1,11 @@
-"""Hugging Face Space helpers for DeepTutor.
+"""Cloud startup helpers for the online DeepTutor server.
 
-restore      Pull /app/data from a private HF dataset (free Spaces have no persistent disk).
+restore      Pull /app/data from a private Hugging Face dataset (free hosts have no
+             persistent disk, and Render's free tier restarts after every idle sleep).
 configure    Lock the app behind the admin account and point it at Gemini.
 backup-loop  Push /app/data back to the dataset whenever it changes.
 
-Configuration comes from Space secrets/variables set by deploy.py:
+Configuration comes from environment variables set by deploy/render/deploy.py:
   ADMIN_USERNAME, ADMIN_PASSWORD, GEMINI_API_KEY, LLM_MODEL, EMBEDDING_MODEL,
   DATA_REPO, DATA_SYNC_TOKEN, DATA_SYNC_MINUTES
 """
@@ -36,7 +37,7 @@ IGNORE = [
 
 
 def log(message: str) -> None:
-    print(f"[space] {message}", flush=True)
+    print(f"[cloud] {message}", flush=True)
 
 
 def _backup_enabled() -> bool:
@@ -66,7 +67,7 @@ def _configure_auth() -> None:
     if len(password) < 8:
         # A public Space without a fixed admin would let the first visitor claim it.
         sys.exit(
-            "[space] ADMIN_PASSWORD secret is missing or shorter than 8 characters; refusing to start."
+            "[cloud] ADMIN_PASSWORD secret is missing or shorter than 8 characters; refusing to start."
         )
 
     from deeptutor.services.auth import hash_password, verify_password
@@ -100,7 +101,7 @@ def _configure_models() -> None:
     setup = {
         "llm": {
             "provider": "gemini",
-            "model": os.environ.get("LLM_MODEL", "").strip() or "gemini-2.5-flash",
+            "model": os.environ.get("LLM_MODEL", "").strip() or "gemini-flash-latest",
             "api_key_env": "GEMINI_API_KEY",
         },
         "embedding": {
