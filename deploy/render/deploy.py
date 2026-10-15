@@ -53,9 +53,10 @@ def main() -> None:
     if not env("RENDER_API_KEY"):
         print("::notice::RENDER_API_KEY secret is not set; skipping Render deploy.")
         return
-    for required in ("GEMINI_API_KEY", "ADMIN_PASSWORD"):
-        if not env(required):
-            sys.exit(f"::error::GitHub secret {required} is required.")
+    if not env("ADMIN_PASSWORD"):
+        sys.exit("::error::GitHub secret ADMIN_PASSWORD is required.")
+    if not (env("OPENAI_API_KEY") or env("GEMINI_API_KEY")):
+        sys.exit("::error::Set the GitHub secret OPENAI_API_KEY or GEMINI_API_KEY.")
 
     owner = env("GITHUB_REPOSITORY_OWNER", "DeeJayKyle").lower()
     image = f"ghcr.io/{owner}/deeptutor-online:{env('IMAGE_SHA', 'latest')}"
@@ -66,12 +67,20 @@ def main() -> None:
 
     env_vars = {
         "PORT": "3782",
-        "GEMINI_API_KEY": env("GEMINI_API_KEY"),
         "ADMIN_USERNAME": env("ADMIN_USERNAME", "admin"),
         "ADMIN_PASSWORD": env("ADMIN_PASSWORD"),
-        "LLM_MODEL": env("LLM_MODEL", "gemini-flash-latest"),
-        "EMBEDDING_MODEL": env("EMBEDDING_MODEL", "gemini-embedding-001"),
     }
+    # Optional values are only sent when set; the server picks model defaults
+    # for whichever provider key is present (OpenAI first, then Gemini).
+    for key in (
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "LLM_MODEL",
+        "EMBEDDING_MODEL",
+        "YOUTUBE_API_KEY",
+    ):
+        if env(key):
+            env_vars[key] = env(key)
     repo = data_repo()
     if repo:
         env_vars.update({"DATA_REPO": repo, "DATA_SYNC_TOKEN": env("HF_TOKEN")})

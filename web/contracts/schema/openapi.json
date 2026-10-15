@@ -728,6 +728,38 @@
         "title": "AutoMarkResponse",
         "type": "object"
       },
+      "BackupCreate": {
+        "properties": {
+          "device": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Device",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Label",
+            "type": "string"
+          },
+          "payload": {
+            "title": "Payload",
+            "type": "string"
+          },
+          "sha256": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sha256",
+          "payload"
+        ],
+        "title": "BackupCreate",
+        "type": "object"
+      },
       "BilingualPairingInfo": {
         "properties": {
           "pairing_id": {
@@ -860,6 +892,20 @@
         "title": "Body_create_knowledge_base_api_knowledge_bases_post",
         "type": "object"
       },
+      "Body_extract_api_companion_extract_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_api_companion_extract_post",
+        "type": "object"
+      },
       "Body_import_docx_api_documents_import_docx_post": {
         "properties": {
           "file": {
@@ -920,8 +966,8 @@
       "Body_library_add": {
         "properties": {
           "file": {
-            "description": "Raw file bytes",
             "format": "binary",
+            "description": "Raw file bytes",
             "title": "File",
             "type": "string"
           },
@@ -3766,6 +3812,169 @@
           "workspace_id"
         ],
         "title": "GenerateFromReadingRequest",
+        "type": "object"
+      },
+      "GenerateRequest": {
+        "properties": {
+          "class_name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Class Name",
+            "type": "string"
+          },
+          "curriculum": {
+            "default": "",
+            "maxLength": 20000,
+            "title": "Curriculum",
+            "type": "string"
+          },
+          "detail": {
+            "default": "standard",
+            "enum": [
+              "brief",
+              "standard",
+              "comprehensive"
+            ],
+            "title": "Detail",
+            "type": "string"
+          },
+          "difficulty": {
+            "default": "mixed",
+            "enum": [
+              "introductory",
+              "intermediate",
+              "advanced",
+              "mixed"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "duration": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Duration",
+            "type": "string"
+          },
+          "include_answers": {
+            "default": true,
+            "title": "Include Answers",
+            "type": "boolean"
+          },
+          "instructions": {
+            "default": "",
+            "maxLength": 60000,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "lecture_notes",
+              "topic_summary",
+              "exam",
+              "quiz",
+              "assignment",
+              "presentation",
+              "marking_guide",
+              "case_study",
+              "revise"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "level": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Level",
+            "type": "string"
+          },
+          "num_questions": {
+            "anyOf": [
+              {
+                "maximum": 200.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Questions"
+          },
+          "objectives": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 60,
+            "title": "Objectives",
+            "type": "array"
+          },
+          "question_types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 12,
+            "title": "Question Types",
+            "type": "array"
+          },
+          "slides": {
+            "anyOf": [
+              {
+                "maximum": 60.0,
+                "minimum": 3.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slides"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceExcerpt"
+            },
+            "maxItems": 12,
+            "title": "Sources",
+            "type": "array"
+          },
+          "topics": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 60,
+            "title": "Topics",
+            "type": "array"
+          },
+          "total_marks": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Marks"
+          },
+          "unit_code": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Unit Code",
+            "type": "string"
+          },
+          "unit_title": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Unit Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "GenerateRequest",
         "type": "object"
       },
       "GenerateTopicDraftRequest": {
@@ -8670,6 +8879,38 @@
         "title": "RenameTagRequest",
         "type": "object"
       },
+      "ResearchRequest": {
+        "properties": {
+          "kind": {
+            "default": "articles",
+            "enum": [
+              "articles",
+              "images",
+              "videos"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "limit": {
+            "default": 8,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 300,
+            "minLength": 2,
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "ResearchRequest",
+        "type": "object"
+      },
       "ResolveRequest": {
         "properties": {
           "language": {
@@ -9696,6 +9937,24 @@
           "content"
         ],
         "title": "SoulUpdateBody",
+        "type": "object"
+      },
+      "SourceExcerpt": {
+        "properties": {
+          "text": {
+            "default": "",
+            "maxLength": 60000,
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "SourceExcerpt",
         "type": "object"
       },
       "StatusColors": {
@@ -18321,6 +18580,596 @@
         "summary": "Put Capabilities Settings",
         "tags": [
           "capabilities"
+        ]
+      }
+    },
+    "/api/companion/backups": {
+      "get": {
+        "operationId": "list_backups_api_companion_backups_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Backups Api Companion Backups Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Backups",
+        "tags": [
+          "companion"
+        ]
+      },
+      "post": {
+        "operationId": "create_backup_api_companion_backups_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Create Backup Api Companion Backups Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Backup",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/backups/{backup_id}": {
+      "delete": {
+        "operationId": "delete_backup_api_companion_backups__backup_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backup_id",
+            "required": true,
+            "schema": {
+              "title": "Backup Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Delete Backup Api Companion Backups  Backup Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Backup",
+        "tags": [
+          "companion"
+        ]
+      },
+      "get": {
+        "operationId": "get_backup_api_companion_backups__backup_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backup_id",
+            "required": true,
+            "schema": {
+              "title": "Backup Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Backup Api Companion Backups  Backup Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Backup",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/extract": {
+      "post": {
+        "operationId": "extract_api_companion_extract_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_api_companion_extract_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Extract Api Companion Extract Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extract",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/generate": {
+      "post": {
+        "operationId": "generate_api_companion_generate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Generate Api Companion Generate Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/research": {
+      "post": {
+        "operationId": "research_api_companion_research_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Research Api Companion Research Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/status": {
+      "get": {
+        "operationId": "status_api_companion_status_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Status Api Companion Status Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Status",
+        "tags": [
+          "companion"
         ]
       }
     },

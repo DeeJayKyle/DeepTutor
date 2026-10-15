@@ -80,6 +80,7 @@ const config = [
       "test-results/**",
       "contracts/generated/.tmp/**",
       "public/pdfjs/**",
+      "public/companion/**",
     ],
   },
 ];

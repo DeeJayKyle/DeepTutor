@@ -1,0 +1,24 @@
+{
+  "id": "/companion/",
+  "name": "Tutor Companion",
+  "short_name": "Tutor Companion",
+  "description": "AI-powered teaching and academic management: classes, lecture notes, exams, marks and reports — works offline.",
+  "start_url": "/companion/index.html",
+  "scope": "/companion/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1f4e79",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Record marks", "url": "/companion/index.html#/students" },
+    { "name": "AI Teaching Assistant", "url": "/companion/index.html#/assistant" },
+    { "name": "Digital Library", "url": "/companion/index.html#/library" }
+  ]
+}
