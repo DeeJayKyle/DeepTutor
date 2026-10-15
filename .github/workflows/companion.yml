@@ -54,7 +54,11 @@ jobs:
 
       - name: Install web dependencies
         working-directory: web
-        run: npm ci --legacy-peer-deps
+        # A few lockfile entries point at registry.npmmirror.com; fetch them
+        # from the main npm registry instead, with retries.
+        run: |
+          npm config set fetch-retries 5
+          npm ci --legacy-peer-deps --registry=https://registry.npmjs.org/ --replace-registry-host=registry.npmmirror.com
 
       - name: Logic unit tests
         working-directory: web
