@@ -1,0 +1,46 @@
+name: Keep server awake
+
+# Render's free service sleeps after 15 minutes without visits and then takes
+# minutes to start again, which phones on mobile data often give up on. A
+# light request every 10 minutes keeps it running (one always-on free service
+# fits Render's 750 free hours a month).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: deploy/cloudflare
+      - name: Ping the server
+        run: |
+          upstream="$(grep -E '^UPSTREAM' deploy/cloudflare/wrangler.toml | cut -d'"' -f2)"
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 240 "$upstream/companion/manifest.json" || true)
+          echo "$upstream -> HTTP $code"
+
+      - name: Finish the Cloudflare setup once its token is added
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || { echo "No Cloudflare token yet."; exit 0; }
+          url="$(python3 deploy/cloudflare/app_url.py)"
+          case "$url" in *workers.dev) ;; *) echo "Cloudflare address not available yet."; exit 0 ;; esac
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 "$url/companion/manifest.json" || true)
+          echo "$url -> HTTP $code"
+          # 404 = the Worker has never been deployed: deploy it now.
+          if [ "$code" = "404" ]; then
+            gh workflow run deploy-cloudflare.yml --ref main --repo "$GITHUB_REPOSITORY"
+            echo "Started Deploy to Cloudflare."
+          fi

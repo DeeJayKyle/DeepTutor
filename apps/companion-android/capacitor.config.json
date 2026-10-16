@@ -1,0 +1,14 @@
+{
+  "appId": "org.tutorcompanion.app",
+  "appName": "Tutor Companion",
+  "webDir": "www",
+  "server": {
+    "url": "https://deeptutor-ia8s.onrender.com/companion/index.html",
+    "allowNavigation": ["deeptutor-ia8s.onrender.com"],
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "backgroundColor": "#f5f7fa",
+    "allowMixedContent": false
+  }
+}

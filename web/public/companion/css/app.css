@@ -328,3 +328,21 @@ pre.extract { white-space: pre-wrap; max-height: 60vh; overflow-y: auto; backgro
   .topbar, .sidebar, .toolbar, .page-actions, .filters, .banner { display: none !important; }
   main { padding: 0; }
 }
+
+/* DeepTutor AI */
+.dt-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .dt-layout { grid-template-columns: 1fr; } }
+.dt-main { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.dt-side .card { margin-bottom: 12px; }
+.dt-side h3 { margin-top: 6px; }
+.dt-caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.dt-cap { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+.dt-cap:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+.dt-cap small { display: block; color: var(--muted); font-size: 0.78rem; line-height: 1.35; }
+.dt-log { min-height: 260px; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px; }
+.dt-msg { border-radius: 10px; padding: 10px 14px; }
+.dt-user { background: var(--primary-soft); align-self: flex-end; max-width: 85%; }
+.dt-user p { margin: 0; white-space: pre-wrap; }
+.dt-ai { background: var(--surface-2); }
+.dt-who { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; display: flex; gap: 6px; align-items: center; }
+.dt-form textarea { min-height: 70px; }

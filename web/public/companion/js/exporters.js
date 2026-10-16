@@ -49,8 +49,44 @@ const MIME = {
  * (desktop Chrome/Edge) so the tutor chooses the folder; otherwise downloads.
  * Resolves to {saved, method, name}; only reports saved when the write ended.
  */
+/** True inside the Android app (Capacitor shell). */
+export function isNativeApp() {
+  return Boolean(globalThis.Capacitor?.isNativePlatform?.());
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/** Android app: write to Documents/Tutor Companion, then offer to open/share. */
+async function saveNative(blob, filename) {
+  const { Filesystem, Share } = globalThis.Capacitor.Plugins;
+  const data = await blobToBase64(blob);
+  let written;
+  let where = "Documents › Tutor Companion folder";
+  try {
+    written = await Filesystem.writeFile({ path: `Tutor Companion/${filename}`, data, directory: "DOCUMENTS", recursive: true });
+  } catch {
+    // Some devices refuse shared storage; keep a private copy and share it.
+    written = await Filesystem.writeFile({ path: filename, data, directory: "CACHE" });
+    where = "share sheet (choose where to save it)";
+  }
+  try {
+    await Share.share({ title: filename, url: written.uri, dialogTitle: "Open or send the file" });
+  } catch {
+    // The tutor closed the share sheet — the file is still saved.
+  }
+  return { saved: true, method: where, name: filename };
+}
+
 export async function saveBlob(blob, filename) {
   if (!blob || !blob.size) throw new Error("The generated file is empty — nothing was saved.");
+  if (isNativeApp()) return saveNative(blob, filename);
   const ext = filename.split(".").pop();
   if (typeof window.showSaveFilePicker === "function" && window.isSecureContext) {
     try {

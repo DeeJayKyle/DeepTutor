@@ -13,7 +13,7 @@ export default defineConfig({
   timeout: 120_000,
   reporter: [["list"]],
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
+    baseURL: process.env.TC_BASE_URL || `http://127.0.0.1:${PORT}`,
     acceptDownloads: true,
     serviceWorkers: "allow",
     launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {},

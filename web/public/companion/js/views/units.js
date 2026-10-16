@@ -2,6 +2,7 @@ import { renderHtml } from "../markdown.js";
 import { badge, confirmDialog, empty, field, modal, options, pageHead } from "../ui.js";
 import { esc, fmtDate, splitLines } from "../util.js";
 import { KIND_LABELS } from "./materials.js";
+import { can } from "../shared.js";
 
 /** "Topic\n  - Subtopic" text → [{title, subtopics[]}] */
 export function parseTopics(text) {
@@ -149,8 +150,8 @@ async function renderDetail(ctx, el, id, tab) {
   el.innerHTML = `
     <nav class="crumbs"><a href="#/classes">Classes</a> › <a href="#/classes/${esc(unit.classId)}">${esc(cls?.name || "Class")}</a> › ${esc(unit.title)}</nav>
     ${pageHead(`${unit.code ? unit.code + " — " : ""}${unit.title}`, [unit.description, unit.hours ? `${unit.hours} teaching hours` : ""].filter(Boolean).join(" · "), `
-      <button class="btn btn-ghost-danger" data-act="delete">Delete</button>
-      <button class="btn" data-act="edit">Edit unit</button>
+      ${can(cls, "units") ? `<button class="btn btn-ghost-danger" data-act="delete">Delete</button>
+      <button class="btn" data-act="edit">Edit unit</button>` : ""}
       <a class="btn btn-primary" href="#/assistant?unit=${esc(id)}">✦ Generate materials</a>`)}
     <div class="tabs" role="tablist">${tabs.map(([k, label]) => `<a role="tab" class="tab ${k === tab ? "active" : ""}" href="#/units/${esc(id)}?tab=${k}">${esc(label)}</a>`).join("")}</div>
     <div class="tab-body">${body}</div>`;

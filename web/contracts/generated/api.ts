@@ -1198,6 +1198,40 @@ export interface paths {
     readonly patch?: never;
     readonly trace?: never;
   };
+  readonly "/api/companion/deeptutor/capabilities": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    /** Deeptutor Capabilities */
+    readonly get: operations["deeptutor_capabilities_api_companion_deeptutor_capabilities_get"];
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/deeptutor/run": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    /** Deeptutor Run */
+    readonly post: operations["deeptutor_run_api_companion_deeptutor_run_post"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
   readonly "/api/companion/extract": {
     readonly parameters: {
       readonly query?: never;
@@ -1243,6 +1277,165 @@ export interface paths {
     readonly put?: never;
     /** Research */
     readonly post: operations["research_api_companion_research_post"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    /** List Schools */
+    readonly get: operations["list_schools_api_companion_schools_get"];
+    readonly put?: never;
+    /** Create School */
+    readonly post: operations["create_school_api_companion_schools_post"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    /** Get School */
+    readonly get: operations["get_school_api_companion_schools__school_id__get"];
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/audit": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    /** School Audit */
+    readonly get: operations["school_audit_api_companion_schools__school_id__audit_get"];
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/classes": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    /** Create Class */
+    readonly post: operations["create_class_api_companion_schools__school_id__classes_post"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/classes/{class_id}": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    /** Get Class */
+    readonly get: operations["get_class_api_companion_schools__school_id__classes__class_id__get"];
+    /** Update Class */
+    readonly put: operations["update_class_api_companion_schools__school_id__classes__class_id__put"];
+    readonly post?: never;
+    /** Delete Class */
+    readonly delete: operations["delete_class_api_companion_schools__school_id__classes__class_id__delete"];
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/classes/{class_id}/roles": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    /** Assign Role */
+    readonly put: operations["assign_role_api_companion_schools__school_id__classes__class_id__roles_put"];
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/members": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    /** Upsert Member */
+    readonly post: operations["upsert_member_api_companion_schools__school_id__members_post"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/members/{username}": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post?: never;
+    /** Remove Member */
+    readonly delete: operations["remove_member_api_companion_schools__school_id__members__username__delete"];
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/companion/schools/{school_id}/report": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    /**
+     * School Report
+     * @description Every class bundle in the school, for institutional reports (admins).
+     */
+    readonly get: operations["school_report_api_companion_schools__school_id__report_get"];
+    readonly put?: never;
+    readonly post?: never;
     readonly delete?: never;
     readonly options?: never;
     readonly head?: never;
@@ -12066,6 +12259,24 @@ export interface components {
       /** Trace Count */
       readonly trace_count: number;
     };
+    /** ClassCreate */
+    readonly ClassCreate: {
+      /** Bundle */
+      readonly bundle: {
+        readonly [key: string]: unknown;
+      };
+      /** Id */
+      readonly id?: string | null;
+    };
+    /** ClassUpdate */
+    readonly ClassUpdate: {
+      /** Base Rev */
+      readonly base_rev: number;
+      /** Bundle */
+      readonly bundle: {
+        readonly [key: string]: unknown;
+      };
+    };
     /** CodexOAuthCallbackPayload */
     readonly CodexOAuthCallbackPayload: {
       /** Callback Url */
@@ -12652,6 +12863,29 @@ export interface components {
       readonly duration_seconds: number;
       /** Time Seconds */
       readonly time_seconds: number;
+    };
+    /** DeepTutorRun */
+    readonly DeepTutorRun: {
+      /**
+       * Capability
+       * @default chat
+       * @enum {string}
+       */
+      readonly capability:
+        "chat" | "deep_solve" | "deep_research" | "deep_question";
+      /** Knowledge Bases */
+      readonly knowledge_bases?: readonly string[];
+      /**
+       * Language
+       * @default en
+       */
+      readonly language: string;
+      /** Message */
+      readonly message: string;
+      /** Session Id */
+      readonly session_id?: string | null;
+      /** Tools */
+      readonly tools?: readonly string[];
     };
     /** DeleteBlockRequest */
     readonly DeleteBlockRequest: {
@@ -14148,6 +14382,17 @@ export interface components {
         readonly [key: string]: components["schemas"]["MCPServerConfig"];
       };
     };
+    /** MemberUpsert */
+    readonly MemberUpsert: {
+      /**
+       * Role
+       * @default tutor
+       * @enum {string}
+       */
+      readonly role: "admin" | "tutor";
+      /** Username */
+      readonly username: string;
+    };
     /**
      * MinerUModelDownloadPayload
      * @description One-click model download request (draft form values, like /test).
@@ -15467,6 +15712,13 @@ export interface components {
       /** Desired Retention */
       readonly desired_retention: number;
     };
+    /** RoleAssign */
+    readonly RoleAssign: {
+      /** Role */
+      readonly role: ("lead" | "teacher" | "assistant" | "viewer") | null;
+      /** Username */
+      readonly username: string;
+    };
     /** RoundSummaryRequest */
     readonly RoundSummaryRequest: {
       /** Partner Id */
@@ -15554,6 +15806,11 @@ export interface components {
       readonly worker_count: number;
       /** Worker Id */
       readonly worker_id: string;
+    };
+    /** SchoolCreate */
+    readonly SchoolCreate: {
+      /** Name */
+      readonly name: string;
     };
     /**
      * ServerPayload
@@ -17496,6 +17753,8 @@ export type SchemaChatResponseTimeoutUpdate =
   components["schemas"]["ChatResponseTimeoutUpdate"];
 export type SchemaChatStarterSettingsUpdate =
   components["schemas"]["ChatStarterSettingsUpdate"];
+export type SchemaClassCreate = components["schemas"]["ClassCreate"];
+export type SchemaClassUpdate = components["schemas"]["ClassUpdate"];
 export type SchemaCodexOAuthCallbackPayload =
   components["schemas"]["CodexOAuthCallbackPayload"];
 export type SchemaCodexReasoningEffortUpdate =
@@ -17566,6 +17825,7 @@ export type SchemaDeeptutorApiRoutersMemoryLlmSelectionPayload =
   components["schemas"]["deeptutor__api__routers__memory__LLMSelectionPayload"];
 export type SchemaDeeptutorApiRoutersVideoLearningProgressRequest =
   components["schemas"]["deeptutor__api__routers__video_learning__ProgressRequest"];
+export type SchemaDeepTutorRun = components["schemas"]["DeepTutorRun"];
 export type SchemaDeleteBlockRequest =
   components["schemas"]["DeleteBlockRequest"];
 export type SchemaDeleteKnowledgeBaseRequest =
@@ -17711,6 +17971,7 @@ export type SchemaMaterialInfo = components["schemas"]["MaterialInfo"];
 export type SchemaMcpServerConfig = components["schemas"]["MCPServerConfig"];
 export type SchemaMcpSettingsPayload =
   components["schemas"]["MCPSettingsPayload"];
+export type SchemaMemberUpsert = components["schemas"]["MemberUpsert"];
 export type SchemaMinerUModelDownloadPayload =
   components["schemas"]["MinerUModelDownloadPayload"];
 export type SchemaMinerUSettingsUpdate =
@@ -17824,10 +18085,12 @@ export type SchemaResumeBookRequest =
 export type SchemaReviewRequest = components["schemas"]["ReviewRequest"];
 export type SchemaReviewSettingsRequest =
   components["schemas"]["ReviewSettingsRequest"];
+export type SchemaRoleAssign = components["schemas"]["RoleAssign"];
 export type SchemaRoundSummaryRequest =
   components["schemas"]["RoundSummaryRequest"];
 export type SchemaRunStartRequest = components["schemas"]["RunStartRequest"];
 export type SchemaRuntimeStatus = components["schemas"]["RuntimeStatus"];
+export type SchemaSchoolCreate = components["schemas"]["SchoolCreate"];
 export type SchemaServerPayload = components["schemas"]["ServerPayload"];
 export type SchemaServicePreviewPayload =
   components["schemas"]["ServicePreviewPayload"];
@@ -20649,6 +20912,78 @@ export interface operations {
       };
     };
   };
+  readonly deeptutor_capabilities_api_companion_deeptutor_capabilities_get: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path?: never;
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly deeptutor_run_api_companion_deeptutor_run_post: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path?: never;
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["DeepTutorRun"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   readonly extract_api_companion_extract_post: {
     readonly parameters: {
       readonly query?: never;
@@ -20743,6 +21078,471 @@ export interface operations {
         readonly "application/json": components["schemas"]["ResearchRequest"];
       };
     };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly list_schools_api_companion_schools_get: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path?: never;
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly create_school_api_companion_schools_post: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path?: never;
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["SchoolCreate"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 201: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly get_school_api_companion_schools__school_id__get: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly school_audit_api_companion_schools__school_id__audit_get: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly create_class_api_companion_schools__school_id__classes_post: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["ClassCreate"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 201: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly get_class_api_companion_schools__school_id__classes__class_id__get: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly class_id: string;
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly update_class_api_companion_schools__school_id__classes__class_id__put: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly class_id: string;
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["ClassUpdate"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly delete_class_api_companion_schools__school_id__classes__class_id__delete: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly class_id: string;
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly assign_role_api_companion_schools__school_id__classes__class_id__roles_put: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly class_id: string;
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["RoleAssign"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly upsert_member_api_companion_schools__school_id__members_post: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["MemberUpsert"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly remove_member_api_companion_schools__school_id__members__username__delete: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly school_id: string;
+        readonly username: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly school_report_api_companion_schools__school_id__report_get: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: {
+        readonly Authorization?: string | null;
+      };
+      readonly path: {
+        readonly school_id: string;
+      };
+      readonly cookie?: {
+        readonly dt_token?: string | null;
+      };
+    };
+    readonly requestBody?: never;
     readonly responses: {
       /** @description Successful Response */
       readonly 200: {

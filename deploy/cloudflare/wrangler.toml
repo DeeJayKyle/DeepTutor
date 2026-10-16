@@ -1,0 +1,9 @@
+# Cloudflare Worker in front of the Render service (see worker.js).
+# Deployed by .github/workflows/deploy-cloudflare.yml.
+name = "tutor-companion"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[vars]
+UPSTREAM = "https://deeptutor-ia8s.onrender.com"
