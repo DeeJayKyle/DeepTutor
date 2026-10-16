@@ -19,15 +19,16 @@ Tutor Companion is at `<address>/companion`; DeepTutor itself at `<address>/`.
 
 ## One-time setup: Cloudflare (free, no card)
 
-1. Create a free account at <https://dash.cloudflare.com/sign-up>.
-2. Open **Workers & Pages** once — this creates your `workers.dev` subdomain.
-   Copy the **Account ID** shown on that page.
-3. Go to **My Profile → API Tokens → Create Token**, choose the template
-   **Edit Cloudflare Workers**, then **Continue → Create Token**, and copy it.
-4. In GitHub: **Settings → Secrets and variables → Actions → New repository
-   secret**, add `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
-5. Run **Actions → Deploy to Cloudflare → Run workflow**. The run summary shows
-   the new address.
+1. Create a free account at <https://dash.cloudflare.com/sign-up> and open
+   **Workers & Pages** once (this creates your `workers.dev` subdomain).
+2. Open <https://dash.cloudflare.com/profile/api-tokens> → **Create Token** →
+   next to **Edit Cloudflare Workers** tap **Use template** → **Continue to
+   summary** → **Create Token**, and copy the token.
+3. In GitHub open **Settings → Secrets and variables → Actions → New
+   repository secret**, name it `CLOUDFLARE_API_TOKEN`, paste the token, save.
+
+The account ID is looked up automatically. Then run **Actions → Deploy to
+Cloudflare → Run workflow**; the run summary shows the new address.
 
 ## Repository secrets
 
@@ -39,7 +40,7 @@ Tutor Companion is at `<address>/companion`; DeepTutor itself at `<address>/`.
 | `GEMINI_API_KEY` | one of these two | Used when no OpenAI key is set (default `gemini-flash-latest`, free tier). |
 | `HF_TOKEN` | recommended | Backs up server data (accounts, school workspaces, cloud backups) to a private Hugging Face dataset, because Render's free disk is wiped on every restart. |
 | `YOUTUBE_API_KEY` | optional | Enables YouTube search in the Research Assistant. Create one free in Google Cloud Console → APIs & Services → enable *YouTube Data API v3* → Credentials → API key. |
-| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | recommended | Cloudflare address that works on mobile networks (above). |
+| `CLOUDFLARE_API_TOKEN` | recommended | Cloudflare address that works on mobile networks (above). `CLOUDFLARE_ACCOUNT_ID` is optional. |
 | `WINDOWS_CERT_PFX_BASE64`, `WINDOWS_CERT_PASSWORD` | optional | A purchased code-signing certificate (`.pfx`, base64-encoded) so Windows shows your name instead of *Unknown publisher*. Without it the installer is signed with a self-signed certificate. |
 | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | optional | A permanent Android signing key, so every future APK installs as an update. Without it each build uses a temporary key. |
 

@@ -22,18 +22,38 @@ def wrangler_value(key: str) -> str:
     return match.group(1) if match else ""
 
 
-def workers_dev_url() -> str:
-    token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
-    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
-    if not (token and account):
-        return ""
+def _cloudflare(path: str, token: str) -> dict:
     request = urllib.request.Request(
-        f"https://api.cloudflare.com/client/v4/accounts/{account}/workers/subdomain",
+        f"https://api.cloudflare.com/client/v4{path}",
         headers={"Authorization": f"Bearer {token}"},
     )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return json.load(response)
+
+
+def account_id() -> str:
+    """The account from CLOUDFLARE_ACCOUNT_ID, or the token's only account."""
+    explicit = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+    if explicit or not token:
+        return explicit
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            subdomain = json.load(response)["result"]["subdomain"]
+        accounts = _cloudflare("/accounts", token)["result"]
+    except Exception as exc:  # noqa: BLE001
+        print(f"Could not list Cloudflare accounts: {exc}", file=sys.stderr)
+        return ""
+    return accounts[0]["id"] if accounts else ""
+
+
+def workers_dev_url() -> str:
+    token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+    account = account_id()
+    if not (token and account):
+        return ""
+    try:
+        subdomain = _cloudflare(f"/accounts/{account}/workers/subdomain", token)["result"][
+            "subdomain"
+        ]
     except Exception as exc:  # noqa: BLE001 — fall back to the next option
         print(f"Could not read the workers.dev subdomain: {exc}", file=sys.stderr)
         return ""
@@ -41,7 +61,14 @@ def workers_dev_url() -> str:
 
 
 def main() -> None:
-    url = os.environ.get("COMPANION_URL", "").strip() or workers_dev_url() or wrangler_value("UPSTREAM")
+    if sys.argv[1:] == ["--account-id"]:
+        print(account_id())
+        return
+    url = (
+        os.environ.get("COMPANION_URL", "").strip()
+        or workers_dev_url()
+        or wrangler_value("UPSTREAM")
+    )
     print(url.rstrip("/"))
 
 
