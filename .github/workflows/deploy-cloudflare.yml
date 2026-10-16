@@ -1,0 +1,68 @@
+name: Deploy to Cloudflare
+
+# Publishes the Cloudflare Worker that serves the app from a Cloudflare
+# address (reachable on mobile networks that fail to open *.onrender.com).
+# Needs repository secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
+# Setup: deploy/README.md
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/cloudflare/**"
+      - ".github/workflows/deploy-cloudflare.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Cloudflare secrets
+        id: check
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not set; skipping. See deploy/README.md."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          node-version: "22"
+
+      - name: Deploy the Worker
+        if: steps.check.outputs.ready == 'true'
+        working-directory: deploy/cloudflare
+        run: npx --yes wrangler@4.151.0 deploy
+
+      - name: Check the app through Cloudflare
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          url="$(python3 deploy/cloudflare/app_url.py)"
+          echo "App address: $url/companion"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$url/companion/manifest.json" || true)
+            [ "$code" = "200" ] && break
+            echo "attempt $i: HTTP $code (the server may be waking up)"; sleep 20
+          done
+          [ "$code" = "200" ] || { echo "::error::$url/companion is not reachable"; exit 1; }
+          {
+            echo "### Tutor Companion is served through Cloudflare"
+            echo ""
+            echo "- App: $url/companion"
+            echo "- DeepTutor: $url/"
+          } >> "$GITHUB_STEP_SUMMARY"

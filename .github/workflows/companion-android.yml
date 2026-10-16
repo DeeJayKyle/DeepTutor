@@ -1,0 +1,126 @@
+name: Build Android app
+
+# Builds the Tutor Companion Android app (Capacitor) as a signed APK.
+# Signing uses the ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD /
+# ANDROID_KEY_ALIAS / ANDROID_KEY_PASSWORD secrets when present. Without them a
+# temporary key is generated: the APK installs fine, but a later version
+# signed with a different key must be installed after uninstalling.
+
+on:
+  push:
+    paths:
+      - "apps/companion-android/**"
+      - ".github/workflows/companion-android.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version name"
+        default: "1.0.0"
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      app_url:
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: apps/companion-android
+    env:
+      VERSION: ${{ inputs.version || '1.0.0' }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      COMPANION_URL: ${{ inputs.app_url || vars.COMPANION_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/companion-android/package-lock.json
+
+      - name: Point the app at the server
+        run: |
+          url="$(python3 ../../deploy/cloudflare/app_url.py)"
+          echo "Server: $url"
+          host="$(python3 -c "import sys,urllib.parse;print(urllib.parse.urlparse(sys.argv[1]).hostname)" "$url")"
+          python3 - "$url" "$host" <<'EOF'
+          import json, sys
+          url, host = sys.argv[1], sys.argv[2]
+          cfg = json.load(open("capacitor.config.json"))
+          cfg["server"]["url"] = f"{url}/companion/index.html"
+          cfg["server"]["allowNavigation"] = [host]
+          json.dump(cfg, open("capacitor.config.json", "w"), indent=2)
+          page = open("www/offline.html").read()
+          import re
+          page = re.sub(r'var SERVER = "[^"]*";', f'var SERVER = "{url}";', page)
+          open("www/offline.html", "w").write(page)
+          EOF
+          cat capacitor.config.json
+
+      - run: npm ci
+      - run: npx cap sync android
+
+      - name: Signing key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ks="$RUNNER_TEMP/release.jks"
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$ks"
+            echo "SIGN_PASS=$KS_PASS" >> "$GITHUB_ENV"
+            echo "SIGN_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "SIGN_KEY_PASS=${KEY_PASS:-$KS_PASS}" >> "$GITHUB_ENV"
+            echo "Using the release key from repository secrets."
+          else
+            pass="$(openssl rand -hex 16)"
+            echo "::add-mask::$pass"
+            keytool -genkeypair -keystore "$ks" -storepass "$pass" -keypass "$pass" -alias tutorcompanion \
+              -keyalg RSA -keysize 4096 -validity 9125 -dname "CN=Tutor Companion, O=Tutor Companion"
+            echo "SIGN_PASS=$pass" >> "$GITHUB_ENV"
+            echo "SIGN_ALIAS=tutorcompanion" >> "$GITHUB_ENV"
+            echo "SIGN_KEY_PASS=$pass" >> "$GITHUB_ENV"
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: signed with a temporary key (see deploy/README.md)."
+          fi
+          echo "SIGN_FILE=$ks" >> "$GITHUB_ENV"
+
+      - name: Build signed APK
+        working-directory: apps/companion-android/android
+        run: |
+          chmod +x gradlew
+          code=$(echo "$VERSION" | awk -F. '{printf "%d", $1*10000 + $2*100 + $3}')
+          ./gradlew --no-daemon assembleRelease \
+            -PtcVersionName="$VERSION" -PtcVersionCode="$code" \
+            -Pandroid.injected.signing.store.file="$SIGN_FILE" \
+            -Pandroid.injected.signing.store.password="$SIGN_PASS" \
+            -Pandroid.injected.signing.key.alias="$SIGN_ALIAS" \
+            -Pandroid.injected.signing.key.password="$SIGN_KEY_PASS"
+          mkdir -p ../dist
+          cp app/build/outputs/apk/release/app-release.apk "../dist/Tutor-Companion-$VERSION.apk"
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          "$apksigner" verify --print-certs "../dist/Tutor-Companion-$VERSION.apk" | head -5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: apps/companion-android/dist/*.apk
+          if-no-files-found: error

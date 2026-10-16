@@ -1,0 +1,28 @@
+name: Keep server awake
+
+# Render's free service sleeps after 15 minutes without visits and then takes
+# minutes to start again, which phones on mobile data often give up on. A
+# light request every 10 minutes keeps it running (one always-on free service
+# fits Render's 750 free hours a month).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: deploy/cloudflare
+      - name: Ping the server
+        run: |
+          upstream="$(grep -E '^UPSTREAM' deploy/cloudflare/wrangler.toml | cut -d'"' -f2)"
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 240 "$upstream/companion/manifest.json" || true)
+          echo "$upstream -> HTTP $code"
