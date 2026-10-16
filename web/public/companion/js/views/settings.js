@@ -2,6 +2,7 @@ import { DATA_STORES, FILE_STORE } from "../db.js";
 import { DEFAULT_SCHEME, formulaText, validateScheme } from "../grading.js";
 import { confirmDialog, field, options, pageHead } from "../ui.js";
 import { esc, fmtBytes } from "../util.js";
+import { APP_VERSION } from "../app.js";
 
 function bandRow(b = {}) {
   return `<tr><td><input name="grade" maxlength="6" value="${esc(b.grade)}" aria-label="Grade" required></td>
@@ -32,6 +33,7 @@ export async function render(ctx, el) {
       <section class="card">
         <h2>Account &amp; workspace</h2>
         <dl class="kv">
+          <dt>Version</dt><dd>Tutor Companion ${APP_VERSION}</dd>
           <dt>Signed in as</dt><dd>${esc(ctx.user)}${ctx.role ? ` (${esc(ctx.role)})` : ""}</dd>
           <dt>Workspace</dt><dd>Private to this account on this device</dd>
           <dt>AI model</dt><dd>${ctx.ai.available ? esc(ctx.ai.model || "configured") : "Not available"} <span class="muted small">(configured on the server; keys never reach this device)</span></dd>
