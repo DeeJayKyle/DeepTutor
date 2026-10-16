@@ -2,7 +2,7 @@
 
 Tutor Companion is an AI-assisted teaching and academic management app for
 tutors, lecturers and schools. It runs inside this DeepTutor deployment at
-**`https://<your-render-app>.onrender.com/companion`** and installs as an app
+**`https://tutor-companion.<account>.workers.dev/companion`** (Cloudflare address; the Render address also works where it is not blocked) and installs as an app
 on Windows, Android and any modern browser.
 
 ## Using it
@@ -49,6 +49,11 @@ and open *Reports & Analytics*.
 | Restore & sync — restore to any device; every record is compared and **conflicts are shown for review** (keep mine / use backup / keep both); manual *Synchronise* merges the latest cloud copy and uploads the result; offline backup files | Done |
 | Sharing — export a class as a share package (students and files only if ticked) and import it into another tutor's workspace with the same conflict review | Done |
 | Activity log of sensitive actions (marks changes, deletions, exports, backups, restores) | Done |
+| OCR — PDFs are read on the device with pdf.js; scanned pages (up to 150 per document) and photographed pages are read with Tesseract OCR, offline | Done |
+| DeepTutor AI — DeepTutor's tutor chat (web/paper/reasoning tools), Deep Solve, Deep Research and question generator, grounded in DeepTutor knowledge bases built from a unit's library; answers saved as materials | Done |
+| School workspaces — schools, admins and tutors, shared classes, per-class roles (lead / teacher / assistant / viewer) enforced on the server, offline copies with sync and conflict review, institution report, activity log | Done |
+| Android app — signed APK (Capacitor) that opens the hosted app, works offline, saves exports to Documents and shares them | Done |
+| Windows app — signed NSIS installer (Electron) | Done |
 
 ## Architecture
 
@@ -65,8 +70,13 @@ DeepTutor backend  /api/companion/*  (deeptutor/api/routers/companion.py)
   ├─ POST /generate   server-side LLM (OpenAI or Gemini; keys never leave the server)
   ├─ POST /extract    text from PDF / DOCX / PPTX / XLSX / TXT
   ├─ POST /research   OpenAlex, arXiv, Wikimedia Commons, YouTube Data API
-  └─ /backups         per-account versioned backups (data/…/companion/backups)
+  ├─ /backups         per-account versioned backups (data/…/companion/backups)
+  ├─ /deeptutor/*     runs DeepTutor capabilities, streams events (NDJSON)
+  └─ /schools/*       school workspaces (SQLite in data/system/companion)
 ```
+
+Mobile networks reach the server through a Cloudflare Worker
+(`deploy/cloudflare/worker.js`) that passes requests to Render unchanged.
 
 **Permissions.** Every `/api/companion` call requires a valid DeepTutor login
 and runs inside that account's own workspace, so one tutor can never list or
@@ -103,32 +113,23 @@ end-to-end tests use a stand-in AI model so they are deterministic and free.
 
 ## Known limitations
 
-- **AI and research need internet.** Offline you can view, edit, export and
-  record marks, but not generate. A local offline AI model is not included.
-- **Installers.** Windows has a desktop installer (`apps/companion-desktop`,
-  built by `.github/workflows/companion-release.yml`); it is not code-signed,
-  so SmartScreen may warn on first run. Android installs through Chrome
-  (*Install app*), which creates a real installed app; there is no APK or
-  Play Store listing yet (that needs a Play developer account).
-- **Sync is manual** (by design) and file-level conflicts are resolved per
-  record; there is no real-time co-editing. Library files are only included in
-  backups when the tutor ticks them (they can be large; 60 MB per backup).
-- **School administration** relies on DeepTutor's account management;
-  institution-wide shared classes, role assignment per class and institutional
-  reports are not built yet — sharing is via share packages.
-- **Text extraction** does not OCR scanned PDFs or images.
-- **YouTube search** needs a `YOUTUBE_API_KEY`; videos are saved as links, not
-  downloaded.
-- Browser storage can be cleared by the user or by the browser under storage
-  pressure; the app requests persistent storage and the dashboard shows
-  whether it was granted — keep regular backups.
+- **AI, DeepTutor and research need internet.** Offline you can view, edit,
+  export, OCR and record marks, but not generate.
+- **Signing.** Without a purchased certificate (`WINDOWS_CERT_PFX_BASE64`) the
+  Windows installer is self-signed, so Windows shows *Unknown publisher*.
+  Without `ANDROID_KEYSTORE_*` secrets each APK build uses a temporary key, so
+  installing a later version may require uninstalling first (back up first).
+- **Shared classes** carry library catalogue entries and extracted text, not
+  the files themselves. Sync is manual by design.
+- **OCR** is English-only and capped at 150 scanned pages per document.
+- **YouTube search** needs a `YOUTUBE_API_KEY`; videos are saved as links.
+- Browser storage can be cleared by the user or the browser under pressure;
+  keep regular backups.
 
 ## Recommended next steps
 
-1. Institution workspaces: shared classes with per-class tutor roles enforced
-   on the server, and institutional reports.
-2. OCR for scanned textbooks; per-unit grading scheme overrides.
-3. Code-signing the Windows installer; an Android APK / Play Store listing.
+1. Per-unit grading scheme overrides; more OCR languages.
+2. Play Store / Microsoft Store listings (need developer accounts).
 
 ## Releases
 

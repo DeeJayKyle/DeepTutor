@@ -1,8 +1,8 @@
 name: Release Tutor Companion
 
-# Builds the Windows installer, checks the live site, and publishes a GitHub
-# release tagged companion-v<version> with release notes from
-# .github/release-notes/companion-<version>.md.
+# Checks the live site, builds the signed Windows installer and Android APK,
+# zips the web app and publishes a GitHub release tagged companion-v<version>
+# with notes from .github/release-notes/companion-<version>.md.
 #
 # The tag deliberately does not start with "v": upstream DeepTutor's PyPI and
 # Docker release workflows only act on v* tags, so they skip this release.
@@ -15,6 +15,14 @@ on:
         description: "Version (e.g. 1.0.0)"
         required: true
         default: "1.0.0"
+      title:
+        description: "Release title"
+        required: true
+        default: "Tutor Companion 1.0"
+      replace:
+        description: "Replace an existing release with the same tag"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -27,29 +35,38 @@ jobs:
   live-check:
     name: Check the live site
     runs-on: ubuntu-latest
+    outputs:
+      app_url: ${{ steps.url.outputs.app_url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      COMPANION_URL: ${{ vars.COMPANION_URL }}
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve the app address
+        id: url
+        run: |
+          url="$(python3 deploy/cloudflare/app_url.py)"
+          echo "app_url=$url" >> "$GITHUB_OUTPUT"
+          echo "App address: $url"
       - name: Wait for /companion on the deployed server
         run: |
-          url="${{ vars.COMPANION_URL }}"
-          [ -n "$url" ] || url="$(python3 -c "import json;print(json.load(open('apps/companion-desktop/config.json'))['serverUrl'])")"
-          echo "Checking $url (free Render services can take a minute to wake up)"
+          url="${{ steps.url.outputs.app_url }}"
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$url/companion/manifest.json" || true)
-            if [ "$code" = "200" ]; then break; fi
+            [ "$code" = "200" ] && break
             echo "attempt $i: HTTP $code"; sleep 20
           done
           [ "$code" = "200" ] || { echo "::error::$url/companion is not reachable"; exit 1; }
           curl -sf "$url/companion/manifest.json" | grep -q '"Tutor Companion"'
-          curl -sf -o /dev/null "$url/companion/js/app.js"
-          curl -sf -o /dev/null "$url/companion/vendor/docx.iife.js"
-          page=$(curl -s -o /dev/null -w "%{http_code} %{redirect_url}" "$url/companion")
-          echo "/companion -> $page"
+          curl -sf -o /dev/null "$url/companion/js/views/school.js"
+          curl -sf -o /dev/null "$url/companion/vendor/tesseract/eng.traineddata.gz"
           echo "### Live site" >> "$GITHUB_STEP_SUMMARY"
           echo "Tutor Companion is served at $url/companion" >> "$GITHUB_STEP_SUMMARY"
 
   windows:
     name: Windows installer
+    needs: live-check
     runs-on: windows-latest
     defaults:
       run:
@@ -66,28 +83,65 @@ jobs:
         shell: bash
         run: |
           npm version "${{ inputs.version }}" --no-git-tag-version --allow-same-version
-          if [ -n "${{ vars.COMPANION_URL }}" ]; then
-            node -e "const f='config.json';const c=require('./'+f);c.serverUrl=process.argv[1];require('fs').writeFileSync(f,JSON.stringify(c,null,2))" "${{ vars.COMPANION_URL }}"
-          fi
+          node -e "const f='config.json';const c=require('./'+f);c.serverUrl=process.argv[1];require('fs').writeFileSync(f,JSON.stringify(c,null,2))" "${{ needs.live-check.outputs.app_url }}"
           cat config.json
-      - name: Build installer
+      - name: Code-signing certificate
+        shell: pwsh
+        env:
+          PFX_B64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          PFX_PASS: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP "codesign.pfx"
+          if ($env:PFX_B64) {
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_B64))
+            $pass = $env:PFX_PASS
+            Write-Output "Signing with the certificate from repository secrets."
+          } else {
+            # No purchased certificate yet: sign with a self-signed one so the
+            # installer carries a tamper-evident signature. Windows still shows
+            # "Unknown publisher" until a trusted certificate is configured.
+            $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Tutor Companion" -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddYears(5)
+            $pass = [guid]::NewGuid().ToString()
+            Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString $pass -AsPlainText -Force) | Out-Null
+            Write-Output "::warning::No WINDOWS_CERT_PFX_BASE64 secret: signed with a self-signed certificate (see deploy/README.md)."
+          }
+          Write-Output "::add-mask::$pass"
+          "CSC_LINK=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "CSC_KEY_PASSWORD=$pass" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Build signed installer
         run: npx electron-builder --win nsis --x64 --publish never
+      - name: Verify signature
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem dist\*.exe | Select-Object -First 1
+          $sig = Get-AuthenticodeSignature $exe.FullName
+          Write-Output "Signer: $($sig.SignerCertificate.Subject)  Status: $($sig.Status)"
+          if (-not $sig.SignerCertificate) { throw "The installer is not signed." }
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
           path: apps/companion-desktop/dist/*.exe
           if-no-files-found: error
 
+  android:
+    name: Android app
+    needs: live-check
+    uses: ./.github/workflows/companion-android.yml
+    with:
+      version: ${{ inputs.version }}
+      app_url: ${{ needs.live-check.outputs.app_url }}
+    secrets: inherit
+
   release:
     name: Publish release
-    needs: [live-check, windows]
+    needs: [live-check, windows, android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: windows-installer
           path: release-assets
+          merge-multiple: true
       - name: Package the web app for self-hosting
         run: |
           (cd web/public && zip -qr "../../release-assets/Tutor-Companion-Web-${{ inputs.version }}.zip" companion)
@@ -95,14 +149,19 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          APP_URL: ${{ needs.live-check.outputs.app_url }}
         run: |
           tag="companion-v${{ inputs.version }}"
           notes=".github/release-notes/companion-${{ inputs.version }}.md"
           [ -f "$notes" ] || { echo "::error::Missing $notes"; exit 1; }
+          sed "s#{{APP_URL}}#$APP_URL#g" "$notes" > "$RUNNER_TEMP/notes.md"
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" release-assets/* --clobber
-          else
-            gh release create "$tag" release-assets/* --target "$GITHUB_SHA" \
-              --title "Tutor Companion ${{ inputs.version }}" --notes-file "$notes" --latest
+            if [ "${{ inputs.replace }}" = "true" ]; then
+              gh release delete "$tag" --yes --cleanup-tag
+            else
+              echo "::error::Release $tag exists; run again with replace enabled."; exit 1
+            fi
           fi
+          gh release create "$tag" release-assets/* --target "$GITHUB_SHA" \
+            --title "${{ inputs.title }}" --notes-file "$RUNNER_TEMP/notes.md" --latest
           echo "Release: https://github.com/${GITHUB_REPOSITORY}/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"

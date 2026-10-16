@@ -10,14 +10,18 @@ on:
       - "web/public/companion/**"
       - "web/companion-tests/**"
       - "deeptutor/api/routers/companion.py"
+      - "deeptutor/api/routers/companion_schools.py"
       - "tests/api/test_companion_router.py"
+      - "tests/api/test_companion_schools.py"
       - ".github/workflows/companion.yml"
   pull_request:
     paths:
       - "web/public/companion/**"
       - "web/companion-tests/**"
       - "deeptutor/api/routers/companion.py"
+      - "deeptutor/api/routers/companion_schools.py"
       - "tests/api/test_companion_router.py"
+      - "tests/api/test_companion_schools.py"
       - ".github/workflows/companion.yml"
   workflow_dispatch:
 
@@ -50,7 +54,7 @@ jobs:
           pip install -e . --no-deps
 
       - name: Router tests
-        run: python -m pytest tests/api/test_companion_router.py -q
+        run: python -m pytest tests/api/test_companion_router.py tests/api/test_companion_schools.py -q
 
       - name: Install web dependencies
         working-directory: web
@@ -66,7 +70,9 @@ jobs:
 
       - name: Install Chromium
         working-directory: web
-        run: npx playwright install --with-deps chromium
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-dejavu-core
 
       - name: End-to-end tests (desktop + mobile)
         working-directory: web
