@@ -1801,6 +1801,52 @@
         "title": "ChatStarterSettingsUpdate",
         "type": "object"
       },
+      "ClassCreate": {
+        "properties": {
+          "bundle": {
+            "additionalProperties": true,
+            "title": "Bundle",
+            "type": "object"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "required": [
+          "bundle"
+        ],
+        "title": "ClassCreate",
+        "type": "object"
+      },
+      "ClassUpdate": {
+        "properties": {
+          "base_rev": {
+            "minimum": 0.0,
+            "title": "Base Rev",
+            "type": "integer"
+          },
+          "bundle": {
+            "additionalProperties": true,
+            "title": "Bundle",
+            "type": "object"
+          }
+        },
+        "required": [
+          "base_rev",
+          "bundle"
+        ],
+        "title": "ClassUpdate",
+        "type": "object"
+      },
       "CodexOAuthCallbackPayload": {
         "properties": {
           "callback_url": {
@@ -3075,6 +3121,66 @@
           "topic"
         ],
         "title": "DeepDiveRequest",
+        "type": "object"
+      },
+      "DeepTutorRun": {
+        "properties": {
+          "capability": {
+            "default": "chat",
+            "enum": [
+              "chat",
+              "deep_solve",
+              "deep_research",
+              "deep_question"
+            ],
+            "title": "Capability",
+            "type": "string"
+          },
+          "knowledge_bases": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Knowledge Bases",
+            "type": "array"
+          },
+          "language": {
+            "default": "en",
+            "maxLength": 10,
+            "title": "Language",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 40000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "DeepTutorRun",
         "type": "object"
       },
       "DeleteBlockRequest": {
@@ -6418,6 +6524,30 @@
         "title": "MaterialInfo",
         "type": "object"
       },
+      "MemberUpsert": {
+        "properties": {
+          "role": {
+            "default": "tutor",
+            "enum": [
+              "admin",
+              "tutor"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "MemberUpsert",
+        "type": "object"
+      },
       "MinerUModelDownloadPayload": {
         "description": "One-click model download request (draft form values, like /test).",
         "properties": {
@@ -9029,6 +9159,39 @@
         "title": "ReviewSettingsRequest",
         "type": "object"
       },
+      "RoleAssign": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lead",
+                  "teacher",
+                  "assistant",
+                  "viewer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "username": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "role"
+        ],
+        "title": "RoleAssign",
+        "type": "object"
+      },
       "RoundSummaryRequest": {
         "properties": {
           "partner_id": {
@@ -9225,6 +9388,21 @@
           "recovery_interval_seconds"
         ],
         "title": "RuntimeStatus",
+        "type": "object"
+      },
+      "SchoolCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SchoolCreate",
         "type": "object"
       },
       "ServerPayload": {
@@ -18875,6 +19053,146 @@
         ]
       }
     },
+    "/api/companion/deeptutor/capabilities": {
+      "get": {
+        "operationId": "deeptutor_capabilities_api_companion_deeptutor_capabilities_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Deeptutor Capabilities Api Companion Deeptutor Capabilities Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deeptutor Capabilities",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/deeptutor/run": {
+      "post": {
+        "operationId": "deeptutor_run_api_companion_deeptutor_run_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeepTutorRun"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deeptutor Run",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
     "/api/companion/extract": {
       "post": {
         "operationId": "extract_api_companion_extract_post",
@@ -19101,6 +19419,990 @@
           }
         },
         "summary": "Research",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools": {
+      "get": {
+        "operationId": "list_schools_api_companion_schools_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Schools Api Companion Schools Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Schools",
+        "tags": [
+          "companion"
+        ]
+      },
+      "post": {
+        "operationId": "create_school_api_companion_schools_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Create School Api Companion Schools Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create School",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}": {
+      "get": {
+        "operationId": "get_school_api_companion_schools__school_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get School Api Companion Schools  School Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get School",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/audit": {
+      "get": {
+        "operationId": "school_audit_api_companion_schools__school_id__audit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response School Audit Api Companion Schools  School Id  Audit Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "School Audit",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/classes": {
+      "post": {
+        "operationId": "create_class_api_companion_schools__school_id__classes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Create Class Api Companion Schools  School Id  Classes Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Class",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/classes/{class_id}": {
+      "delete": {
+        "operationId": "delete_class_api_companion_schools__school_id__classes__class_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "title": "Class Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Delete Class Api Companion Schools  School Id  Classes  Class Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Class",
+        "tags": [
+          "companion"
+        ]
+      },
+      "get": {
+        "operationId": "get_class_api_companion_schools__school_id__classes__class_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "title": "Class Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Class Api Companion Schools  School Id  Classes  Class Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Class",
+        "tags": [
+          "companion"
+        ]
+      },
+      "put": {
+        "operationId": "update_class_api_companion_schools__school_id__classes__class_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "title": "Class Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Update Class Api Companion Schools  School Id  Classes  Class Id  Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Class",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/classes/{class_id}/roles": {
+      "put": {
+        "operationId": "assign_role_api_companion_schools__school_id__classes__class_id__roles_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "title": "Class Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleAssign"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Assign Role Api Companion Schools  School Id  Classes  Class Id  Roles Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assign Role",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/members": {
+      "post": {
+        "operationId": "upsert_member_api_companion_schools__school_id__members_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Upsert Member Api Companion Schools  School Id  Members Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Member",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/members/{username}": {
+      "delete": {
+        "operationId": "remove_member_api_companion_schools__school_id__members__username__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "title": "Username",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Remove Member Api Companion Schools  School Id  Members  Username  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Member",
+        "tags": [
+          "companion"
+        ]
+      }
+    },
+    "/api/companion/schools/{school_id}/report": {
+      "get": {
+        "description": "Every class bundle in the school, for institutional reports (admins).",
+        "operationId": "school_report_api_companion_schools__school_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response School Report Api Companion Schools  School Id  Report Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "School Report",
         "tags": [
           "companion"
         ]
