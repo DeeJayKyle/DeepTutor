@@ -87,11 +87,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: windows-installer
-          path: assets
+          path: release-assets
       - name: Package the web app for self-hosting
         run: |
-          (cd web/public && zip -qr "../../assets/Tutor-Companion-Web-${{ inputs.version }}.zip" companion)
-          (cd assets && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          (cd web/public && zip -qr "../../release-assets/Tutor-Companion-Web-${{ inputs.version }}.zip" companion)
+          (cd release-assets && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -100,9 +100,9 @@ jobs:
           notes=".github/release-notes/companion-${{ inputs.version }}.md"
           [ -f "$notes" ] || { echo "::error::Missing $notes"; exit 1; }
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" assets/* --clobber
+            gh release upload "$tag" release-assets/* --clobber
           else
-            gh release create "$tag" assets/* --target "$GITHUB_SHA" \
+            gh release create "$tag" release-assets/* --target "$GITHUB_SHA" \
               --title "Tutor Companion ${{ inputs.version }}" --notes-file "$notes" --latest
           fi
           echo "Release: https://github.com/${GITHUB_REPOSITORY}/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"
