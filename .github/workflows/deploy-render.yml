@@ -34,7 +34,7 @@ jobs:
       - name: Create or update the Render service
         run: python deploy/render/deploy.py
         env:
-          IMAGE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          IMAGE_SHA: ${{ github.event.workflow_run.head_sha || 'latest' }}
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
