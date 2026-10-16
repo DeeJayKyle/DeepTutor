@@ -1,0 +1,58 @@
+{
+  "name": "tutor-companion",
+  "productName": "Tutor Companion",
+  "version": "1.0.0",
+  "description": "Tutor Companion desktop app for Windows: classes, lecture notes, exams, marks and reports \u2014 works offline.",
+  "author": "DeeJayKyle",
+  "license": "Apache-2.0",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --x64 --publish never",
+    "dist:dir": "electron-builder --dir --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.7.2",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "org.tutorcompanion.desktop",
+    "productName": "Tutor Companion",
+    "artifactName": "Tutor-Companion-Setup-${version}.${ext}",
+    "files": [
+      "main.js",
+      "offline.html",
+      "config.json",
+      "build/icon.png"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": [
+        "dir"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tutor Companion"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DeeJayKyle/DeepTutor.git"
+  }
+}

@@ -18,6 +18,8 @@ import * as reports from "./views/reports.js";
 import * as backup from "./views/backup.js";
 import * as settings from "./views/settings.js";
 
+export const APP_VERSION = "1.0.0";
+
 export const NAV = [
   ["dashboard", "Dashboard", "▦", dashboard],
   ["classes", "Classes", "▤", classes],

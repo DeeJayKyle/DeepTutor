@@ -1,7 +1,7 @@
 // Tutor Companion service worker: caches the app shell and export libraries
 // so the app opens and works without internet. API calls are never cached.
 
-const VERSION = "tc-v1";
+const VERSION = "tc-1.0.0";
 const SHELL = [
   "./",
   "index.html",

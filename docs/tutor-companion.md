@@ -9,9 +9,9 @@ on Windows, Android and any modern browser.
 
 1. Open `/companion` and sign in with your DeepTutor account.
 2. **Install it** (optional but recommended):
-   - **Windows** — in Edge or Chrome click *Install Tutor Companion* (⊕ in the
-     address bar, or the *Install app* button in the top bar). It opens from the
-     Start menu in its own window.
+   - **Windows** — download `Tutor-Companion-Setup-<version>.exe` from the
+     [Releases page](https://github.com/DeeJayKyle/DeepTutor/releases) and run
+     it (or, in Edge/Chrome, click *Install Tutor Companion* in the address bar).
    - **Android** — in Chrome tap ⋮ › *Install app* / *Add to Home screen*.
    - **Web** — just use the page; bookmark it.
 3. After the first visit the app opens and works **without internet**.
@@ -105,10 +105,11 @@ end-to-end tests use a stand-in AI model so they are deterministic and free.
 
 - **AI and research need internet.** Offline you can view, edit, export and
   record marks, but not generate. A local offline AI model is not included.
-- **Native installers.** Windows and Android use the installable web-app
-  (PWA) route — no `.exe`/`.apk` file. It installs from the browser, runs in
-  its own window and works offline. Publishing to the Play Store or Microsoft
-  Store would need store accounts and packaging (e.g. PWABuilder).
+- **Installers.** Windows has a desktop installer (`apps/companion-desktop`,
+  built by `.github/workflows/companion-release.yml`); it is not code-signed,
+  so SmartScreen may warn on first run. Android installs through Chrome
+  (*Install app*), which creates a real installed app; there is no APK or
+  Play Store listing yet (that needs a Play developer account).
 - **Sync is manual** (by design) and file-level conflicts are resolved per
   record; there is no real-time co-editing. Library files are only included in
   backups when the tutor ticks them (they can be large; 60 MB per backup).
@@ -127,4 +128,11 @@ end-to-end tests use a stand-in AI model so they are deterministic and free.
 1. Institution workspaces: shared classes with per-class tutor roles enforced
    on the server, and institutional reports.
 2. OCR for scanned textbooks; per-unit grading scheme overrides.
-3. Optional store packaging (PWABuilder) for Play Store / Microsoft Store.
+3. Code-signing the Windows installer; an Android APK / Play Store listing.
+
+## Releases
+
+Run **Actions → Release Tutor Companion → Run workflow** with a version. It
+checks the live site, builds the Windows installer, zips the web app and
+publishes a GitHub release `companion-v<version>` using
+`.github/release-notes/companion-<version>.md`.
