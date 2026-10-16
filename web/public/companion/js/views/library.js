@@ -1,4 +1,5 @@
 import { api } from "../api.js";
+import { isNativeApp, saveBlob } from "../exporters.js";
 import { FILE_STORE } from "../db.js";
 import { badge, confirmDialog, empty, field, modal, options, pageHead } from "../ui.js";
 import { debounce, esc, fmtBytes, fmtDate, uid } from "../util.js";
@@ -20,7 +21,10 @@ const DOC_LABEL = Object.fromEntries(DOC_TYPES);
 const ACCEPT = ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.csv,.rtf,.odt,.odp,.ods,.epub,.png,.jpg,.jpeg,.gif,.webp,.svg";
 const ALLOWED = new Set(ACCEPT.split(",").map((s) => s.slice(1)));
 const TEXT_LOCAL = new Set(["txt", "md", "csv"]);
-const EXTRACTABLE = new Set(["pdf", "docx", "pptx", "xlsx", ...TEXT_LOCAL]);
+const IMAGE_OCR = new Set(["png", "jpg", "jpeg", "webp", "gif"]);
+const SERVER_EXTRACT = new Set(["docx", "pptx", "xlsx"]);
+/** Can text be extracted on this device (no internet needed)? */
+const LOCAL_EXTRACT = (e) => TEXT_LOCAL.has(e) || IMAGE_OCR.has(e) || e === "pdf";
 export const MAX_FILE_BYTES = 40 * 1024 * 1024;
 
 function ext(name) {
@@ -37,20 +41,45 @@ function guessType(name) {
   return e === "pdf" ? "textbook" : "reference";
 }
 
-/** Extract text for AI use: locally for text files, via the server otherwise. */
+/**
+ * Extract text for AI use. Text files, PDFs (with OCR for scanned pages) and
+ * images (OCR) are read on this device; Office files are read by the server.
+ */
 export async function extractText(ctx, resource, file) {
   const e = ext(resource.fileName);
-  if (!EXTRACTABLE.has(e)) return resource;
+  if (!LOCAL_EXTRACT(e) && !SERVER_EXTRACT.has(e)) return resource;
   try {
     let text;
     let truncated = false;
+    let ocrNote = "";
     if (TEXT_LOCAL.has(e)) text = (await file.text()).slice(0, 400_000);
-    else {
+    else if (e === "pdf") {
+      const { readPdf } = await import("../ocr.js");
+      let lastToast = 0;
+      const res = await readPdf(file, {
+        onProgress: (p) => {
+          if (p.phase === "ocr" && Date.now() - lastToast > 8000) {
+            lastToast = Date.now();
+            ctx.toast(`OCR “${resource.title}”: scanned page ${p.done + 1} of ${p.total}…`, "info", 6000);
+          }
+        },
+      });
+      text = res.text.slice(0, 400_000);
+      truncated = res.text.length > 400_000;
+      if (res.ocrPages) ocrNote = `${res.ocrPages} scanned page(s) read with OCR`;
+      if (res.skippedOcrPages) ocrNote += `${ocrNote ? "; " : ""}${res.skippedOcrPages} more scanned page(s) skipped (limit 150)`;
+    } else if (IMAGE_OCR.has(e)) {
+      const { ocrImage } = await import("../ocr.js");
+      ctx.toast(`Reading text in “${resource.title}” with OCR…`, "info");
+      text = await ocrImage(file);
+      ocrNote = "read with OCR";
+    } else {
       const res = await api.extract(file);
       text = res.text;
       truncated = res.truncated;
     }
-    return ctx.db.put("resources", { ...resource, text, textChars: text.length, textTruncated: truncated, textError: "" });
+    if (!text.trim()) throw new Error(IMAGE_OCR.has(e) || e === "pdf" ? "No readable text was found, even with OCR." : "The file contains no text.");
+    return ctx.db.put("resources", { ...resource, text, textChars: text.length, textTruncated: truncated, textError: "", ocrNote });
   } catch (err) {
     return ctx.db.put("resources", { ...resource, textError: err.message });
   }
@@ -131,6 +160,7 @@ async function upload(ctx, defaults = {}) {
   const look = await ctx.lookups();
   const files = [...values.files];
   let ok = 0;
+  const pending = [];
   for (const file of files) {
     try {
       const fileId = uid("fi_");
@@ -147,7 +177,7 @@ async function upload(ctx, defaults = {}) {
         offline: true,
       });
       ok += 1;
-      if (navigator.onLine || TEXT_LOCAL.has(ext(file.name))) resource = await extractText(ctx, resource, file);
+      if (navigator.onLine || LOCAL_EXTRACT(ext(file.name))) pending.push([resource, file]);
     } catch (err) {
       const quota = err?.name === "QuotaExceededError";
       ctx.toast(quota ? `Not enough storage on this device for “${file.name}”. Free space or remove offline copies.` : `Could not store “${file.name}”: ${err.message}`, "error", 8000);
@@ -155,15 +185,26 @@ async function upload(ctx, defaults = {}) {
   }
   if (ok) {
     await ctx.db.log("library-upload", `${ok} file(s)`);
-    ctx.toast(`${ok} file${ok === 1 ? "" : "s"} added to the library.`, "success");
+    ctx.toast(`${ok} file${ok === 1 ? "" : "s"} added to the library.${pending.length ? " Reading their text…" : ""}`, "success");
   }
   ctx.refresh();
+  // Text extraction (and OCR) can take a while, so it runs after the upload.
+  for (const [resource, file] of pending) {
+    const updated = await extractText(ctx, resource, file);
+    if (updated.textError) ctx.toast(`“${resource.title}”: ${updated.textError}`, "error", 8000);
+    if (ctx.route.name === "library") ctx.refresh();
+  }
+  if (pending.length) ctx.toast("Text extraction finished.", "success");
 }
 
 async function openResource(ctx, r) {
   await ctx.db.put("resources", { ...r, openedAt: new Date().toISOString() });
   if (r.fileId) {
     const f = await ctx.db.get(FILE_STORE, r.fileId);
+    if (f?.blob && isNativeApp()) {
+      await saveBlob(f.blob, r.fileName);
+      return;
+    }
     if (f?.blob) {
       const url = URL.createObjectURL(f.blob);
       const win = window.open(url, "_blank");
@@ -189,7 +230,7 @@ async function showText(ctx, r) {
     submit: "",
     cancel: "Close",
     body: r.text
-      ? `<p class="muted small">${r.textChars?.toLocaleString() || r.text.length} characters${r.textTruncated ? " (truncated)" : ""}. This text is what the AI assistant reads when you select this source.</p><pre class="extract">${esc(r.text.slice(0, 20000))}${r.text.length > 20000 ? "\n…" : ""}</pre>`
+      ? `<p class="muted small">${r.textChars?.toLocaleString() || r.text.length} characters${r.textTruncated ? " (truncated)" : ""}${r.ocrNote ? ` · ${esc(r.ocrNote)}` : ""}. This text is what the AI assistant reads when you select this source.</p><pre class="extract">${esc(r.text.slice(0, 20000))}${r.text.length > 20000 ? "\n…" : ""}</pre>`
       : `<p>${esc(r.textError || "No text has been extracted yet.")}</p>`,
   });
 }
@@ -238,7 +279,7 @@ export async function render(ctx, el, params) {
             <td>${esc(DOC_LABEL[r.docType] || r.docType || "")}</td>
             <td class="small">${esc(cls?.name || "—")}${unit ? `<br>${esc(look.unitLabel(unit))}` : ""}</td>
             <td class="small">${r.size ? fmtBytes(r.size) : r.url ? "link" : "—"}</td>
-            <td>${r.text ? `<button class="link small" data-act="text">${(r.textChars || r.text.length).toLocaleString()} chars</button>` : r.textError ? `<span class="badge badge-warn" title="${esc(r.textError)}">failed</span> <button class="link small" data-act="extract">retry</button>` : r.fileId ? `<button class="link small" data-act="extract">extract</button>` : "—"}</td>
+            <td>${r.text ? `<button class="link small" data-act="text">${(r.textChars || r.text.length).toLocaleString()} chars</button>${r.ocrNote ? ` ${badge("OCR", "ai")}` : ""}` : r.textError ? `<span class="badge badge-warn" title="${esc(r.textError)}">failed</span> <button class="link small" data-act="extract">retry</button>` : r.fileId ? `<button class="link small" data-act="extract">extract</button>` : "—"}</td>
             <td>${r.fileId ? (r.offline ? badge("on device", "ok") : badge("not kept")) : "—"}</td>
             <td class="right nowrap"><button class="btn btn-sm" data-act="edit">Edit</button> <button class="btn btn-sm btn-ghost-danger" data-act="delete" aria-label="Delete">✕</button></td></tr>`;
         })

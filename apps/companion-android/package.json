@@ -1,0 +1,19 @@
+{
+  "name": "tutor-companion-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tutor Companion for Android (Capacitor shell around the hosted app).",
+  "license": "Apache-2.0",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

@@ -47,7 +47,7 @@ test("dashboard loads with navigation and status", async () => {
   await page.goto("/companion/index.html");
   await expect(page.getByRole("heading", { name: /Welcome/ })).toBeVisible();
   const nav = page.locator("#nav a");
-  await expect(nav).toHaveCount(13);
+  await expect(nav).toHaveCount(15);
   await expect(page.locator("#conn")).toContainText("AI ready");
   await expect(page.locator(".stats")).toContainText("0/20");
 });

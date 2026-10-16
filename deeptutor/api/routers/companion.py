@@ -13,6 +13,9 @@ parts that need a server:
   and carries its source URL; nothing here is written by the LLM.
 * ``/backups`` — optional, tutor-initiated backups stored in the signed-in
   user's own workspace, versioned and checked with SHA-256.
+* ``/deeptutor/run`` — runs a DeepTutor capability (tutor chat, deep solve,
+  deep research, question generation) for the tutor and streams its events,
+  so DeepTutor's agents and knowledge bases are usable inside the app.
 """
 
 from __future__ import annotations
@@ -31,7 +34,8 @@ import urllib.parse
 import uuid
 import xml.etree.ElementTree as ET
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi.responses import StreamingResponse
 import httpx
 from pydantic import BaseModel, Field
 
@@ -684,3 +688,143 @@ async def delete_backup(backup_id: str, _current=Depends(require_auth)) -> dict[
         raise HTTPException(status_code=404, detail="Backup not found.")
     path.unlink()
     return {"deleted": backup_id}
+
+
+# ---------------------------------------------------------------------------
+# DeepTutor capabilities inside Tutor Companion
+# ---------------------------------------------------------------------------
+
+DEEPTUTOR_CAPABILITIES = {
+    "chat": "Tutor chat — answers with optional web, paper and knowledge-base tools",
+    "deep_solve": "Deep Solve — plans and works through a problem step by step",
+    "deep_research": "Deep Research — multi-step research report with sources",
+    "deep_question": "Question generator — DeepTutor's quiz and exam question engine",
+}
+DEEPTUTOR_TOOLS = {"web_search", "paper_search", "reason", "brainstorm"}
+# Event types forwarded to the browser; everything else is internal detail.
+FORWARDED_EVENTS = {
+    "stage_start",
+    "stage_end",
+    "progress",
+    "content",
+    "sources",
+    "result",
+    "error",
+    "done",
+    "tool_call",
+}
+
+
+class DeepTutorRun(BaseModel):
+    message: str = Field(min_length=1, max_length=40_000)
+    capability: Literal["chat", "deep_solve", "deep_research", "deep_question"] = "chat"
+    knowledge_bases: list[str] = Field(default_factory=list, max_length=5)
+    tools: list[str] = Field(default_factory=list, max_length=8)
+    session_id: str | None = Field(default=None, max_length=120)
+    language: str = Field(default="en", max_length=10)
+
+
+def slim_event(item: dict[str, Any]) -> dict[str, Any] | None:
+    """Reduce a DeepTutor stream event to what the app renders (pure)."""
+    kind = str(item.get("type", ""))
+    if kind not in FORWARDED_EVENTS:
+        return None
+    metadata = item.get("metadata") or {}
+    out: dict[str, Any] = {"type": kind, "content": str(item.get("content", "") or "")[:200_000]}
+    for key in ("stage", "call_id", "trace_kind", "sources", "tool_name"):
+        if key in metadata:
+            out[key] = metadata[key]
+    if kind in {"stage_start", "stage_end"} and "stage" not in out and item.get("stage"):
+        out["stage"] = item.get("stage")
+    if kind == "sources" and isinstance(item.get("sources"), list):
+        out["sources"] = item["sources"]
+    if kind == "result":
+        result = metadata if isinstance(metadata, dict) else {}
+        out["response"] = str(result.get("response", "") or "")[:200_000]
+    return out
+
+
+@router.get("/deeptutor/capabilities")
+async def deeptutor_capabilities(_current=Depends(require_auth)) -> dict[str, Any]:
+    ai_ready, model = _ai_configured()
+    return {
+        "ai_available": ai_ready,
+        "model": model,
+        "capabilities": [{"name": k, "label": v} for k, v in DEEPTUTOR_CAPABILITIES.items()],
+        "tools": sorted(DEEPTUTOR_TOOLS),
+    }
+
+
+def _deeptutor_app():
+    from deeptutor.app.facade import DeepTutorApp
+
+    return DeepTutorApp()
+
+
+@router.post("/deeptutor/run")
+async def deeptutor_run(
+    body: DeepTutorRun, request: Request, _current=Depends(require_auth)
+) -> StreamingResponse:
+    ai_ready, _model = _ai_configured()
+    if not ai_ready:
+        raise HTTPException(status_code=503, detail="No AI model is configured on the server.")
+    unknown = sorted(set(body.tools) - DEEPTUTOR_TOOLS)
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"Unsupported tools: {', '.join(unknown)}")
+    app = _deeptutor_app()
+    payload: dict[str, Any] = {
+        "content": body.message,
+        "capability": body.capability,
+        "knowledge_bases": body.knowledge_bases,
+        "language": body.language,
+        "capability_once": True,
+    }
+    if body.tools:
+        payload["tools"] = body.tools
+    if body.session_id:
+        payload["session_id"] = body.session_id
+    try:
+        session, turn = await app.start_turn(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001 — report runtime start failures cleanly
+        logger.warning("DeepTutor turn failed to start: %s", exc)
+        raise HTTPException(status_code=502, detail=f"DeepTutor could not start: {exc}") from exc
+
+    async def events():
+        yield (
+            json.dumps(
+                {"type": "session", "session_id": session.get("id"), "turn_id": turn.get("id")}
+            )
+            + "\n"
+        )
+        finished = False
+        try:
+            async for item in app.stream_turn(turn["id"]):
+                if await request.is_disconnected():
+                    break
+                meta = item.get("metadata") or {}
+                tool_meta = meta.get("tool_metadata") if isinstance(meta, dict) else None
+                if isinstance(tool_meta, dict) and tool_meta.get("ask_user"):
+                    # Headless: never wait for a question nobody will answer.
+                    await app.submit_user_reply(turn["id"], text="")
+                slim = slim_event(item)
+                if slim is not None:
+                    yield json.dumps(slim, default=str) + "\n"
+                    if slim["type"] == "done":
+                        finished = True
+        except Exception as exc:  # noqa: BLE001 — surface stream failures to the client
+            logger.warning("DeepTutor stream failed: %s", exc)
+            yield json.dumps({"type": "error", "content": str(exc)}) + "\n"
+        finally:
+            if not finished:
+                try:
+                    await app.cancel_turn(turn["id"])
+                except Exception:  # noqa: BLE001
+                    pass
+
+    return StreamingResponse(
+        events(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+    )

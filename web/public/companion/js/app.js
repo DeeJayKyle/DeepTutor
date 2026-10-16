@@ -17,6 +17,8 @@ import * as research from "./views/research.js";
 import * as reports from "./views/reports.js";
 import * as backup from "./views/backup.js";
 import * as settings from "./views/settings.js";
+import * as deeptutor from "./views/deeptutor.js";
+import * as school from "./views/school.js";
 
 export const APP_VERSION = "1.0.0";
 
@@ -26,12 +28,14 @@ export const NAV = [
   ["units", "Course Units", "❏", units],
   ["library", "Digital Library", "▥", library],
   ["assistant", "AI Teaching Assistant", "✦", assistant],
+  ["deeptutor", "DeepTutor AI", "✺", deeptutor],
   ["notes", "Lecture Notes", "✎", materials],
   ["exams", "Examinations & Quizzes", "✓", materials],
   ["assignments", "Assignments & Coursework", "☰", materials],
   ["students", "Students & Marks", "☺", students],
   ["research", "Research Assistant", "⌕", research],
   ["reports", "Reports & Analytics", "◔", reports],
+  ["school", "School & Sharing", "⌂", school],
   ["backup", "Backup & Sync", "⇅", backup],
   ["settings", "Settings", "⚙", settings],
 ];

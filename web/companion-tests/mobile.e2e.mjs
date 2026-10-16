@@ -16,7 +16,7 @@ test("mobile layout and navigation", async ({ page }) => {
   await page.fill("input[name=name]", "Form 2 Biology");
   await page.locator(".modal button[type=submit]").click();
   await expect(page.locator(".class-card")).toContainText("Form 2 Biology");
-  for (const route of ["dashboard", "students", "library", "assistant", "reports", "backup", "settings"]) {
+  for (const route of ["dashboard", "students", "library", "assistant", "deeptutor", "school", "reports", "backup", "settings"]) {
     await page.goto(`/companion/index.html#/${route}`);
     await page.waitForSelector(".view");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

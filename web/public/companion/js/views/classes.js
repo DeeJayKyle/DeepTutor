@@ -4,6 +4,8 @@ import { badge, confirmDialog, empty, field, modal, pageHead } from "../ui.js";
 import { esc, fmtDate, MAX_CLASSES, slug } from "../util.js";
 import { editUnit } from "./units.js";
 import { resolveConflicts } from "./backup.js";
+import { can, roleOf, ROLE_LABELS } from "../shared.js";
+import { runSync } from "./school.js";
 
 export async function editClass(ctx, existing = null) {
   const count = await ctx.db.count("classes");
@@ -37,10 +39,12 @@ export async function editClass(ctx, existing = null) {
 
 async function deleteClass(ctx, cls) {
   const [units, students] = await Promise.all([ctx.db.byIndex("units", "classId", cls.id), ctx.db.byIndex("students", "classId", cls.id)]);
-  const ok = await confirmDialog(
-    `Deleting “${cls.name}” also deletes its ${units.length} course unit(s), ${students.length} student record(s), their marks and generated materials. Library files are kept. Consider a backup first.`,
-    { title: "Delete class", confirm: "Delete class", typed: cls.name },
-  );
+  const ok = cls.shared
+    ? await confirmDialog(`Remove your copy of the shared class “${cls.name}” from this device? The school copy is not affected; download it again from School & Sharing.`, { title: "Remove from this device", confirm: "Remove copy" })
+    : await confirmDialog(
+        `Deleting “${cls.name}” also deletes its ${units.length} course unit(s), ${students.length} student record(s), their marks and generated materials. Library files are kept. Consider a backup first.`,
+        { title: "Delete class", confirm: "Delete class", typed: cls.name },
+      );
   if (!ok) return false;
   await ctx.db.deleteClass(cls.id);
   await ctx.db.log("delete-class", cls.name);
@@ -109,11 +113,11 @@ export async function render(ctx, el, params) {
                 <h2><a href="#/classes/${esc(c.id)}">${esc(c.name)}</a></h2>
                 <p class="muted">${esc([c.level, c.year].filter(Boolean).join(" · ") || "No level set")}</p>
                 <p>${esc(c.description || "")}</p>
-                <p class="meta">${badge(`${u.length} unit${u.length === 1 ? "" : "s"}`)} ${badge(`${s} student${s === 1 ? "" : "s"}`)}</p>
+                <p class="meta">${badge(`${u.length} unit${u.length === 1 ? "" : "s"}`)} ${badge(`${s} student${s === 1 ? "" : "s"}`)} ${c.shared ? badge(`Shared · ${c.shared.schoolName} · ${c.shared.role}`, "ai") : ""}</p>
                 <div class="card-actions">
                   <a class="btn btn-sm" href="#/classes/${esc(c.id)}">Open</a>
-                  <button class="btn btn-sm" data-act="edit" data-id="${esc(c.id)}">Edit</button>
-                  <button class="btn btn-sm btn-ghost-danger" data-act="delete" data-id="${esc(c.id)}">Delete</button>
+                  ${can(c, "class") ? `<button class="btn btn-sm" data-act="edit" data-id="${esc(c.id)}">Edit</button>` : ""}
+                  <button class="btn btn-sm btn-ghost-danger" data-act="delete" data-id="${esc(c.id)}">${c.shared ? "Remove copy" : "Delete"}</button>
                 </div></article>`;
             })
             .join("")}</div>`
@@ -150,9 +154,10 @@ async function renderDetail(ctx, el, id) {
   el.innerHTML = `
     <nav class="crumbs"><a href="#/classes">Classes</a> › ${esc(cls.name)}</nav>
     ${pageHead(cls.name, [cls.level, cls.year].filter(Boolean).join(" · "), `
-      <button class="btn" data-act="share">Share…</button>
-      <button class="btn" data-act="edit">Edit class</button>
-      <button class="btn btn-primary" data-act="unit">＋ Add course unit</button>`)}
+      ${cls.shared ? `<button class="btn btn-primary" data-act="sync">⇅ Sync with school</button>` : `<button class="btn" data-act="share">Share…</button>`}
+      ${can(cls, "class") ? `<button class="btn" data-act="edit">Edit class</button>` : ""}
+      ${can(cls, "units") ? `<button class="btn btn-primary" data-act="unit">＋ Add course unit</button>` : ""}`)}
+    ${cls.shared ? `<div class="alert alert-info">Shared class in <strong>${esc(cls.shared.schoolName)}</strong> · your role: <strong>${esc(ROLE_LABELS[roleOf(cls)] || roleOf(cls))}</strong> · revision ${cls.shared.rev}. Changes you make here are uploaded when you sync.</div>` : ""}
     ${cls.description ? `<p>${esc(cls.description)}</p>` : ""}
     <section class="stats stats-sm">
       <a class="stat" href="#/students?class=${esc(id)}"><span class="stat-value">${students.length}</span><span class="stat-label">Students</span></a>
@@ -182,5 +187,9 @@ async function renderDetail(ctx, el, id) {
       if (unit) ctx.navigate(`units/${unit.id}`);
     }
     if (act === "share") await exportShare(ctx, cls);
+    if (act === "sync") {
+      await runSync(ctx, id);
+      ctx.refresh();
+    }
   });
 }

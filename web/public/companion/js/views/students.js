@@ -2,6 +2,7 @@ import { exportXlsx, saveBlob } from "../exporters.js";
 import { ASSESSMENT_CATEGORIES, classReport, DEFAULT_SCHEME, markKey, validateScore } from "../grading.js";
 import { badge, confirmDialog, empty, field, modal, options, pageHead } from "../ui.js";
 import { esc, fmtDate, parseCsv, slug, toCsv } from "../util.js";
+import { can, roleOf } from "../shared.js";
 
 const CAT_LABEL = Object.fromEntries(ASSESSMENT_CATEGORIES);
 
@@ -146,6 +147,10 @@ export async function render(ctx, el, params) {
   const classUnits = look.units.filter((u) => u.classId === classId);
   const unitId = classUnits.some((u) => u.id === params.unit) ? params.unit : "";
   const tab = params.tab || (params.assessment ? "marks" : "roster");
+  const cls = look.classById.get(classId);
+  const canStudents = can(cls, "students");
+  const canAssess = can(cls, "assessments");
+  const canMarks = can(cls, "marks");
   const [roster, allAssessments, scheme] = await Promise.all([
     ctx.db.byIndex("students", "classId", classId),
     ctx.db.byIndex("assessments", "classId", classId),
@@ -164,13 +169,13 @@ export async function render(ctx, el, params) {
     body = roster.length
       ? `<div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Reg. no.</th><th>Name</th><th>Email</th><th>Phone</th><th></th></tr></thead><tbody>${roster
           .map((s, i) => `<tr data-id="${esc(s.id)}"><td>${i + 1}</td><td>${esc(s.regNo || "—")}</td><td>${esc(studentName(s))}</td><td class="small">${esc(s.email || "")}</td><td class="small">${esc(s.phone || "")}</td>
-            <td class="right nowrap"><button class="btn btn-sm" data-act="edit-student">Edit</button> <button class="btn btn-sm btn-ghost-danger" data-act="delete-student" aria-label="Delete">✕</button></td></tr>`)
+            <td class="right nowrap">${canStudents ? `<button class="btn btn-sm" data-act="edit-student">Edit</button> <button class="btn btn-sm btn-ghost-danger" data-act="delete-student" aria-label="Delete">✕</button>` : ""}</td></tr>`)
           .join("")}</tbody></table></div>`
-      : empty("No students in this class", "Register students one by one or import a CSV class list.", `<button class="btn btn-primary" data-act="add-student">＋ Register student</button>`);
+      : empty("No students in this class", "Register students one by one or import a CSV class list.", canStudents ? `<button class="btn btn-primary" data-act="add-student">＋ Register student</button>` : "");
   } else if (tab === "marks") {
     const current = assessments.find((a) => a.id === params.assessment) || assessments[0];
     if (!assessments.length) {
-      body = empty("No assessments yet", "Create an assessment (e.g. CAT 1, practical, final exam) with its maximum score and weight, then record marks.", `<button class="btn btn-primary" data-act="add-assessment">＋ New assessment</button>`);
+      body = empty("No assessments yet", "Create an assessment (e.g. CAT 1, practical, final exam) with its maximum score and weight, then record marks.", canAssess ? `<button class="btn btn-primary" data-act="add-assessment">＋ New assessment</button>` : "");
     } else if (!roster.length) {
       body = empty("No students", "Register students before recording marks.", `<a class="btn btn-primary" href="${q({ tab: "roster" })}">Go to class list</a>`);
     } else {
@@ -181,9 +186,9 @@ export async function render(ctx, el, params) {
           <label class="field inline"><span>Assessment</span><select data-act="pick-assessment">${options(assessments.map((a) => [a.id, `${a.title} (${look.unitLabel(look.unitById.get(a.unitId))})`]), current.id)}</select></label>
           <span class="muted small">${esc(CAT_LABEL[current.category] || current.category)} · out of <strong>${current.maxScore}</strong> · weight ${current.weight || 0} · ${fmtDate(current.date)}</span>
           <span class="spacer"></span>
-          <button class="btn btn-sm" data-act="edit-assessment" data-id="${esc(current.id)}">Edit</button>
+          ${canAssess ? `<button class="btn btn-sm" data-act="edit-assessment" data-id="${esc(current.id)}">Edit</button>
           <button class="btn btn-sm" data-act="lock" data-id="${esc(current.id)}">${current.locked ? "🔒 Unlock marks" : "🔓 Lock marks"}</button>
-          <button class="btn btn-sm btn-ghost-danger" data-act="delete-assessment" data-id="${esc(current.id)}">Delete</button>
+          <button class="btn btn-sm btn-ghost-danger" data-act="delete-assessment" data-id="${esc(current.id)}">Delete</button>` : ""}
         </div>
         ${current.locked ? `<div class="alert alert-info">Marks for this assessment are locked to prevent accidental changes. Unlock to edit.</div>` : ""}
         <form class="marks-form" data-assessment="${esc(current.id)}" data-max="${current.maxScore}">
@@ -193,13 +198,14 @@ export async function render(ctx, el, params) {
             const m = byStudent.get(s.id) || {};
             const pct = m.score !== null && m.score !== undefined ? ((m.score / current.maxScore) * 100).toFixed(1) : "";
             return `<tr data-student="${esc(s.id)}"><td>${esc(s.regNo || "—")}</td><td>${esc(studentName(s))}</td>
-              <td><input class="score" name="score" inputmode="decimal" value="${esc(m.score ?? "")}" ${current.locked ? "disabled" : ""} aria-label="Score for ${esc(studentName(s))}"><div class="cell-error" aria-live="polite"></div></td>
+              <td><input class="score" name="score" inputmode="decimal" value="${esc(m.score ?? "")}" ${current.locked || !canMarks ? "disabled" : ""} aria-label="Score for ${esc(studentName(s))}"><div class="cell-error" aria-live="polite"></div></td>
               <td class="pct">${pct}</td>
-              <td><input type="checkbox" name="absent" ${m.absent ? "checked" : ""} ${current.locked ? "disabled" : ""} aria-label="Absent"></td>
-              <td><input type="checkbox" name="exempt" ${m.exempt ? "checked" : ""} ${current.locked ? "disabled" : ""} aria-label="Exempt"></td></tr>`;
+              <td><input type="checkbox" name="absent" ${m.absent ? "checked" : ""} ${current.locked || !canMarks ? "disabled" : ""} aria-label="Absent"></td>
+              <td><input type="checkbox" name="exempt" ${m.exempt ? "checked" : ""} ${current.locked || !canMarks ? "disabled" : ""} aria-label="Exempt"></td></tr>`;
           })
           .join("")}</tbody></table></div>
-        ${current.locked ? "" : `<div class="form-actions"><button type="submit" class="btn btn-primary">Save marks</button><span class="muted small" id="marks-note">Blank = not yet recorded. Exempt = excluded from the final mark.</span></div>`}
+        ${!canMarks ? `<div class="alert alert-info">Your role in this shared class (${esc(roleOf(cls))}) is read-only for marks.</div>` : ""}
+        ${current.locked || !canMarks ? "" : `<div class="form-actions"><button type="submit" class="btn btn-primary">Save marks</button><span class="muted small" id="marks-note">Blank = not yet recorded. Exempt = excluded from the final mark.</span></div>`}
         </form>`;
     }
   } else {
@@ -217,8 +223,8 @@ export async function render(ctx, el, params) {
 
   el.innerHTML = `
     ${pageHead("Students & Marks", "Class lists, assessments, marks entry and marksheets.", `
-      ${tab === "roster" ? `<button class="btn" data-act="export-students">⤓ Export list</button><button class="btn" data-act="import-students">⇪ Import CSV</button><button class="btn btn-primary" data-act="add-student">＋ Register student</button>` : ""}
-      ${tab === "marks" ? `<button class="btn btn-primary" data-act="add-assessment">＋ New assessment</button>` : ""}
+      ${tab === "roster" ? `<button class="btn" data-act="export-students">⤓ Export list</button>${canStudents ? `<button class="btn" data-act="import-students">⇪ Import CSV</button><button class="btn btn-primary" data-act="add-student">＋ Register student</button>` : ""}` : ""}
+      ${tab === "marks" && canAssess ? `<button class="btn btn-primary" data-act="add-assessment">＋ New assessment</button>` : ""}
       ${tab === "sheet" ? `<button class="btn btn-primary" data-act="export-sheet">⤓ Export marksheet (.xlsx)</button>` : ""}`)}
     <div class="filters">
       <label class="field inline"><span>Class</span><select data-nav="class">${options(look.classOptions, classId)}</select></label>

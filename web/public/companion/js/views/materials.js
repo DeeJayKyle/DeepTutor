@@ -4,6 +4,7 @@ import { provenance, renderHtml } from "../markdown.js";
 import { parseQuiz } from "../sources.js";
 import { badge, busy, confirmDialog, empty, field, modal, options, pageHead } from "../ui.js";
 import { debounce, esc, fmtDate, fmtDateTime } from "../util.js";
+import { can } from "../shared.js";
 
 export const KIND_LABELS = {
   lecture_notes: "Lecture notes",
@@ -98,6 +99,8 @@ async function renderEditor(ctx, el, id) {
   const from = SECTIONS[ctx.route.params.from] ? ctx.route.params.from : sectionFor(m.kind);
   ctx.activeNav = from;
   const isQuiz = ["quiz", "exam"].includes(m.kind) && parseQuiz(m.content).length > 0;
+  // In a shared class only leads and teachers may change materials.
+  const readOnly = Boolean(cls?.shared) && !can(cls, "materials");
 
   el.innerHTML = `
     <nav class="crumbs"><a href="#/${from}">${esc(SECTIONS[from]?.title || "Materials")}</a> › ${esc(m.title)}</nav>
@@ -126,7 +129,7 @@ async function renderEditor(ctx, el, id) {
       <button class="btn btn-ghost-danger" data-act="delete">Delete</button>
     </div>
     <div class="editor split">
-      <textarea class="md-input" spellcheck="true" aria-label="Content (Markdown)">${esc(m.content)}</textarea>
+      <textarea class="md-input" spellcheck="true" aria-label="Content (Markdown)" ${readOnly ? "readonly" : ""}>${esc(m.content)}</textarea>
       <article class="prose md-preview"></article>
     </div>
     <details class="card help"><summary>Formatting help</summary>

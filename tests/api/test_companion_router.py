@@ -216,3 +216,86 @@ def test_videos_without_api_key_return_search_link(client, monkeypatch):
     body = response.json()
     assert body["results"] == []
     assert body["search_url"].endswith("pharmacokinetics")
+
+
+class _FakeDeepTutor:
+    def __init__(self):
+        self.started = None
+        self.replies = []
+        self.cancelled = []
+
+    async def start_turn(self, payload):
+        self.started = payload
+        return {"id": "sess-1"}, {"id": "turn-1"}
+
+    async def stream_turn(self, turn_id):
+        yield {"type": "stage_start", "metadata": {"stage": "responding"}}
+        yield {
+            "type": "tool_result",
+            "metadata": {"tool_metadata": {"ask_user": {"questions": ["?"]}}},
+        }
+        yield {
+            "type": "content",
+            "content": "Half-life is ",
+            "metadata": {"call_id": "c1", "trace_kind": "llm_chunk"},
+        }
+        yield {
+            "type": "content",
+            "content": "the time to halve.",
+            "metadata": {"call_id": "c1", "trace_kind": "llm_chunk"},
+        }
+        yield {"type": "internal_debug", "content": "hidden"}
+        yield {"type": "done", "metadata": {}}
+
+    async def submit_user_reply(self, turn_id, text=""):
+        self.replies.append((turn_id, text))
+        return True
+
+    async def cancel_turn(self, turn_id):
+        self.cancelled.append(turn_id)
+        return True
+
+
+def test_deeptutor_run_streams_capability_events(client, monkeypatch):
+    fake = _FakeDeepTutor()
+    monkeypatch.setattr(companion, "_ai_configured", lambda: (True, "m"))
+    monkeypatch.setattr(companion, "_deeptutor_app", lambda: fake)
+    caps = client.get("/api/companion/deeptutor/capabilities").json()
+    assert {c["name"] for c in caps["capabilities"]} == {
+        "chat",
+        "deep_solve",
+        "deep_research",
+        "deep_question",
+    }
+
+    response = client.post(
+        "/api/companion/deeptutor/run",
+        json={
+            "message": "What is half-life?",
+            "capability": "deep_solve",
+            "knowledge_bases": ["pharm-kb"],
+            "tools": ["web_search"],
+        },
+    )
+    assert response.status_code == 200
+    events = [json.loads(line) for line in response.text.splitlines()]
+    assert events[0] == {"type": "session", "session_id": "sess-1", "turn_id": "turn-1"}
+    assert [e["type"] for e in events[1:]] == ["stage_start", "content", "content", "done"]
+    assert (
+        "".join(e["content"] for e in events if e["type"] == "content")
+        == "Half-life is the time to halve."
+    )
+    assert fake.started["capability"] == "deep_solve"
+    assert fake.started["knowledge_bases"] == ["pharm-kb"]
+    assert fake.replies == [("turn-1", "")]  # ask_user auto-answered
+    assert fake.cancelled == []
+
+
+def test_deeptutor_run_rejects_unknown_tools(client, monkeypatch):
+    monkeypatch.setattr(companion, "_ai_configured", lambda: (True, "m"))
+    bad = client.post("/api/companion/deeptutor/run", json={"message": "x", "tools": ["exec"]})
+    assert bad.status_code == 400
+    bad = client.post(
+        "/api/companion/deeptutor/run", json={"message": "x", "capability": "math_animator"}
+    )
+    assert bad.status_code == 422

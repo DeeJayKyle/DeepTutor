@@ -1,7 +1,7 @@
 // Tutor Companion service worker: caches the app shell and export libraries
 // so the app opens and works without internet. API calls are never cached.
 
-const VERSION = "tc-1.0.0";
+const VERSION = "tc-1.0.0-r2";
 const SHELL = [
   "./",
   "index.html",
@@ -30,6 +30,16 @@ const SHELL = [
   "js/views/settings.js",
   "js/views/students.js",
   "js/views/units.js",
+  "js/views/deeptutor.js",
+  "js/views/school.js",
+  "js/ocr.js",
+  "js/shared.js",
+  "vendor/pdfjs/pdf.min.mjs",
+  "vendor/pdfjs/pdf.worker.min.mjs",
+  "vendor/tesseract/tesseract.min.js",
+  "vendor/tesseract/worker.min.js",
+  "vendor/tesseract/tesseract-core-simd-lstm.wasm.js",
+  "vendor/tesseract/eng.traineddata.gz",
   "vendor/docx.iife.js",
   "vendor/pptxgen.bundle.js",
   "vendor/exceljs.min.js",
