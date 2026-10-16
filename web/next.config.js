@@ -149,6 +149,8 @@ const nextConfig = {
       // then measures that aborted render with a negative end time — the
       // "cannot have a negative time stamp" overlay (vercel/next.js#86060).
       { source: "/", destination: "/chat", permanent: false },
+      // Tutor Companion is a static offline-first app under public/companion.
+      { source: "/companion", destination: "/companion/index.html", permanent: false },
       { source: "/mastery/:pathId/study", destination: "/learning/mastery/:pathId/sessions", statusCode: 301 },
       { source: "/mastery/:pathId/study/:sessionId", destination: "/learning/mastery/:pathId/sessions/:sessionId", statusCode: 301 },
       ...["books", "mastery", "reading", "watching"].map((surface) => ({

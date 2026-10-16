@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tutor Companion</title>
+  <meta name="description" content="AI-powered teaching and academic management for tutors: classes, course units, library, lecture notes, exams, marks and reports — offline-first.">
+  <meta name="theme-color" content="#1f4e79">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <button id="nav-toggle" class="icon-btn nav-toggle" aria-label="Menu">☰</button>
+    <a class="brand" href="#/dashboard"><img src="icons/icon-192.png" alt="" width="28" height="28"> <span>Tutor Companion</span></a>
+    <span id="conn" class="conn" role="status" aria-live="polite"></span>
+    <span class="spacer"></span>
+    <button id="install-btn" class="btn btn-sm" hidden>⤓ Install app</button>
+    <span id="who" class="who" title="Signed-in workspace"></span>
+  </header>
+  <div id="signin-banner" class="banner" hidden>
+    Your session has expired. Your local data is still available. <a href="/login?next=/companion/index.html">Sign in</a> to use AI, research and cloud backup.
+  </div>
+  <div class="layout">
+    <nav id="nav" class="sidebar" aria-label="Main"></nav>
+    <div id="nav-scrim" class="scrim"></div>
+    <main id="main" tabindex="-1"><div class="loading"><span class="spinner"></span> Opening your workspace…</div></main>
+  </div>
+  <div id="modal-root"></div>
+  <div id="toasts" class="toasts"></div>
+  <noscript><p style="padding:2rem">Tutor Companion needs JavaScript enabled.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

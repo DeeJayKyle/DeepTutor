@@ -531,6 +531,7 @@ from deeptutor.api.routers import (
     capabilities,
     capabilities_settings,
     co_writer,
+    companion,
     courses,
     dashboard,
     file_preview,
@@ -671,6 +672,9 @@ app.include_router(
 )
 app.include_router(sessions.router, prefix="/api/sessions", tags=["sessions"], dependencies=_auth)
 app.include_router(courses.router, prefix="/api/courses", tags=["courses"], dependencies=_auth)
+app.include_router(
+    companion.router, prefix="/api/companion", tags=["companion"], dependencies=_auth
+)
 app.include_router(
     question_notebook.router,
     prefix="/api/question-notebook",

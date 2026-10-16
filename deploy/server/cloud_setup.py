@@ -95,19 +95,26 @@ def _configure_auth() -> None:
 
 
 def _configure_models() -> None:
-    if not os.environ.get("GEMINI_API_KEY", "").strip():
-        log("GEMINI_API_KEY not set; add a model provider in Settings -> Providers.")
+    # OpenAI is used when its key is present; otherwise Gemini (free tier).
+    if os.environ.get("OPENAI_API_KEY", "").strip():
+        provider, key_env = "openai", "OPENAI_API_KEY"
+        llm_default, embed_default = "gpt-5-mini", "text-embedding-3-small"
+    elif os.environ.get("GEMINI_API_KEY", "").strip():
+        provider, key_env = "gemini", "GEMINI_API_KEY"
+        llm_default, embed_default = "gemini-flash-latest", "gemini-embedding-001"
+    else:
+        log("No OPENAI_API_KEY or GEMINI_API_KEY; add a model provider in Settings -> Providers.")
         return
     setup = {
         "llm": {
-            "provider": "gemini",
-            "model": os.environ.get("LLM_MODEL", "").strip() or "gemini-flash-latest",
-            "api_key_env": "GEMINI_API_KEY",
+            "provider": provider,
+            "model": os.environ.get("LLM_MODEL", "").strip() or llm_default,
+            "api_key_env": key_env,
         },
         "embedding": {
-            "provider": "gemini",
-            "model": os.environ.get("EMBEDDING_MODEL", "").strip() or "gemini-embedding-001",
-            "api_key_env": "GEMINI_API_KEY",
+            "provider": provider,
+            "model": os.environ.get("EMBEDDING_MODEL", "").strip() or embed_default,
+            "api_key_env": key_env,
         },
         "search": {"provider": "duckduckgo"},
     }
@@ -124,9 +131,11 @@ def _configure_models() -> None:
     finally:
         os.unlink(path)
     if result.returncode == 0:
-        log(f"Models configured: {setup['llm']['model']} + {setup['embedding']['model']} (Gemini).")
+        log(
+            f"Models configured: {setup['llm']['model']} + {setup['embedding']['model']} ({provider})."
+        )
     else:
-        log("Automatic model setup failed; configure Gemini in Settings -> Providers.")
+        log(f"Automatic model setup failed; configure {provider} in Settings -> Providers.")
         log((result.stdout + result.stderr).strip()[-2000:])
 
 

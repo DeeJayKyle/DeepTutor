@@ -1,0 +1,76 @@
+name: Tutor Companion
+
+# Tests the Tutor Companion app (web/public/companion) and its API router:
+# Python router tests, logic unit tests, and real-browser end-to-end tests
+# on desktop and phone screen sizes.
+
+on:
+  push:
+    paths:
+      - "web/public/companion/**"
+      - "web/companion-tests/**"
+      - "deeptutor/api/routers/companion.py"
+      - "tests/api/test_companion_router.py"
+      - ".github/workflows/companion.yml"
+  pull_request:
+    paths:
+      - "web/public/companion/**"
+      - "web/companion-tests/**"
+      - "deeptutor/api/routers/companion.py"
+      - "tests/api/test_companion_router.py"
+      - ".github/workflows/companion.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  companion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/*.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/server.txt -r requirements/dev.txt
+          pip install -e . --no-deps
+
+      - name: Router tests
+        run: python -m pytest tests/api/test_companion_router.py -q
+
+      - name: Install web dependencies
+        working-directory: web
+        # A few lockfile entries point at registry.npmmirror.com; fetch them
+        # from the main npm registry instead, with retries.
+        run: |
+          npm config set fetch-retries 5
+          npm ci --legacy-peer-deps --registry=https://registry.npmjs.org/ --replace-registry-host=registry.npmmirror.com
+
+      - name: Logic unit tests
+        working-directory: web
+        run: node --test companion-tests/logic.test.mjs
+
+      - name: Install Chromium
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests (desktop + mobile)
+        working-directory: web
+        run: npx playwright test -c companion-tests/playwright.config.mjs
+        env:
+          CI: "1"
+          PYTHON: python
