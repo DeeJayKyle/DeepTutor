@@ -487,6 +487,104 @@
         "title": "ApprovalRequest",
         "type": "object"
       },
+      "AssessmentRequest": {
+        "properties": {
+          "difficulty": {
+            "default": "mixed",
+            "enum": [
+              "easy",
+              "moderate",
+              "hard",
+              "mixed"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "duration": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Duration",
+            "type": "string"
+          },
+          "instructions": {
+            "default": "",
+            "maxLength": 3000,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "kind": {
+            "default": "exam",
+            "enum": [
+              "exam",
+              "coursework",
+              "assignment",
+              "test",
+              "quiz",
+              "practical"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "programme": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Programme",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/FormatSection"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Sections",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceText"
+            },
+            "maxItems": 12,
+            "title": "Sources",
+            "type": "array"
+          },
+          "style_notes": {
+            "default": "",
+            "maxLength": 3000,
+            "title": "Style Notes",
+            "type": "string"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/TopicContext"
+            },
+            "maxItems": 80,
+            "minItems": 1,
+            "title": "Topics",
+            "type": "array"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitContext"
+          }
+        },
+        "required": [
+          "unit",
+          "topics",
+          "sections"
+        ],
+        "title": "AssessmentRequest",
+        "type": "object"
+      },
       "AssetAddRequest": {
         "properties": {
           "knowledge_bases": {
@@ -1799,6 +1897,29 @@
           "trace_count"
         ],
         "title": "ChatStarterSettingsUpdate",
+        "type": "object"
+      },
+      "ChatTurn": {
+        "properties": {
+          "content": {
+            "maxLength": 60000,
+            "title": "Content",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ChatTurn",
         "type": "object"
       },
       "ClassCreate": {
@@ -3803,6 +3924,31 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
+      "ExamFormatRequest": {
+        "properties": {
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 300000,
+            "minLength": 20,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ExamFormatRequest",
+        "type": "object"
+      },
       "ExportDocxRequest": {
         "properties": {
           "content": {
@@ -3876,6 +4022,53 @@
           }
         },
         "title": "FetchModelsPayload",
+        "type": "object"
+      },
+      "FormatSection": {
+        "properties": {
+          "choose": {
+            "default": 0,
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "title": "Choose",
+            "type": "integer"
+          },
+          "count": {
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "instructions": {
+            "default": "",
+            "maxLength": 1500,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "marks_each": {
+            "default": 1,
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "title": "Marks Each",
+            "type": "number"
+          },
+          "title": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "default": "short",
+            "maxLength": 40,
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "FormatSection",
         "type": "object"
       },
       "GenerateFromNotebookRequest": {
@@ -5921,6 +6114,28 @@
         "title": "LlamaIndexConfigUpdate",
         "type": "object"
       },
+      "LoginBody": {
+        "properties": {
+          "password": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginBody",
+        "type": "object"
+      },
       "LoginRequest": {
         "description": "Payload for the POST /login endpoint.",
         "properties": {
@@ -7335,6 +7550,75 @@
         "title": "NotebookReference",
         "type": "object"
       },
+      "NotesRequest": {
+        "properties": {
+          "audience": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Audience",
+            "type": "string"
+          },
+          "detail": {
+            "default": "standard",
+            "enum": [
+              "brief",
+              "standard",
+              "comprehensive"
+            ],
+            "title": "Detail",
+            "type": "string"
+          },
+          "hour_start": {
+            "default": 1,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Hour Start",
+            "type": "number"
+          },
+          "instructions": {
+            "default": "",
+            "maxLength": 3000,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "programme": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Programme",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceText"
+            },
+            "maxItems": 12,
+            "title": "Sources",
+            "type": "array"
+          },
+          "topic": {
+            "$ref": "#/components/schemas/TopicContext"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitContext"
+          }
+        },
+        "required": [
+          "unit",
+          "topic"
+        ],
+        "title": "NotesRequest",
+        "type": "object"
+      },
       "OrganizeNotesRequest": {
         "properties": {
           "material_ids": {
@@ -7421,6 +7705,37 @@
           "type"
         ],
         "title": "OutgoingAttachment",
+        "type": "object"
+      },
+      "OutlineRequest": {
+        "properties": {
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 600000,
+            "minLength": 20,
+            "title": "Text",
+            "type": "string"
+          },
+          "title_hint": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Title Hint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "OutlineRequest",
         "type": "object"
       },
       "PageChatSessionRequest": {
@@ -8204,6 +8519,66 @@
           }
         },
         "title": "QuestionBankStats",
+        "type": "object"
+      },
+      "QuestionsRequest": {
+        "properties": {
+          "count": {
+            "default": 10,
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "difficulty": {
+            "default": "mixed",
+            "enum": [
+              "easy",
+              "moderate",
+              "hard",
+              "mixed"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceText"
+            },
+            "maxItems": 8,
+            "title": "Sources",
+            "type": "array"
+          },
+          "topic": {
+            "$ref": "#/components/schemas/TopicContext"
+          },
+          "types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Types",
+            "type": "array"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitContext"
+          }
+        },
+        "required": [
+          "unit",
+          "topic"
+        ],
+        "title": "QuestionsRequest",
         "type": "object"
       },
       "QuizAnswerItem": {
@@ -9159,6 +9534,44 @@
         "title": "ReviewSettingsRequest",
         "type": "object"
       },
+      "ReviseRequest": {
+        "properties": {
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "context": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Context",
+            "type": "string"
+          },
+          "instruction": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Instruction",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instruction",
+          "content"
+        ],
+        "title": "ReviseRequest",
+        "type": "object"
+      },
       "RoleAssign": {
         "properties": {
           "role": {
@@ -10013,6 +10426,107 @@
         "title": "SkillInstallPayload",
         "type": "object"
       },
+      "SlidesRequest": {
+        "properties": {
+          "markdown": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Markdown",
+            "type": "string"
+          },
+          "max_slides": {
+            "default": 16,
+            "maximum": 60.0,
+            "minimum": 3.0,
+            "title": "Max Slides",
+            "type": "integer"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "markdown"
+        ],
+        "title": "SlidesRequest",
+        "type": "object"
+      },
+      "SolveRequest": {
+        "properties": {
+          "context": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Context",
+            "type": "string"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/SourceText"
+            },
+            "maxItems": 8,
+            "title": "Documents",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ChatTurn"
+            },
+            "maxItems": 40,
+            "title": "History",
+            "type": "array"
+          },
+          "images": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Images",
+            "type": "array"
+          },
+          "mode": {
+            "default": "solve",
+            "enum": [
+              "solve",
+              "tutor",
+              "mark"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 60000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "title": "SolveRequest",
+        "type": "object"
+      },
       "SoulCreateRequest": {
         "properties": {
           "content": {
@@ -10133,6 +10647,30 @@
           }
         },
         "title": "SourceExcerpt",
+        "type": "object"
+      },
+      "SourceText": {
+        "properties": {
+          "id": {
+            "default": "",
+            "maxLength": 40,
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 60000,
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "SourceText",
         "type": "object"
       },
       "StatusColors": {
@@ -10512,6 +11050,43 @@
           "object_type"
         ],
         "title": "SyncObjectIn",
+        "type": "object"
+      },
+      "SyncPut": {
+        "properties": {
+          "base_rev": {
+            "minimum": 0.0,
+            "title": "Base Rev",
+            "type": "integer"
+          },
+          "data": {
+            "title": "Data",
+            "type": "string"
+          },
+          "device": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Device",
+            "type": "string"
+          },
+          "force": {
+            "default": false,
+            "title": "Force",
+            "type": "boolean"
+          },
+          "sha256": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base_rev",
+          "sha256",
+          "data"
+        ],
+        "title": "SyncPut",
         "type": "object"
       },
       "SyncRequest": {
@@ -11003,6 +11578,50 @@
         "title": "ToolsListResponse",
         "type": "object"
       },
+      "TopicContext": {
+        "properties": {
+          "hours": {
+            "default": 0,
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Hours",
+            "type": "number"
+          },
+          "objectives": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 60,
+            "title": "Objectives",
+            "type": "array"
+          },
+          "practicals": {
+            "default": "",
+            "maxLength": 1500,
+            "title": "Practicals",
+            "type": "string"
+          },
+          "subtopics": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Subtopics",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "TopicContext",
+        "type": "object"
+      },
       "TopicSourceKind": {
         "description": "What a learner may point a mastery goal at.\n\nEverything DeepTutor already holds for them is fair game: their library\n(``BOOK``), their notes (``NOTEBOOK``), an indexed corpus or one document\ninside it (``KNOWLEDGE_BASE`` / ``FILE``), and — added with the mastery\ngoal rework — the working history that shows what they have actually been\ndoing: past conversations, their own wrong answers, drafts they are\nwriting, and study partner transcripts.",
         "enum": [
@@ -11099,6 +11718,37 @@
           }
         },
         "title": "TourCompletePayload",
+        "type": "object"
+      },
+      "TranscribeRequest": {
+        "properties": {
+          "audio": {
+            "maxLength": 20000000,
+            "minLength": 10,
+            "title": "Audio",
+            "type": "string"
+          },
+          "language": {
+            "default": "",
+            "maxLength": 20,
+            "title": "Language",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "TranscribeRequest",
         "type": "object"
       },
       "TurnFailureCode": {
@@ -11855,6 +12505,82 @@
           }
         },
         "title": "UISettingsUpdate",
+        "type": "object"
+      },
+      "UnitContext": {
+        "properties": {
+          "code": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Code",
+            "type": "string"
+          },
+          "overview": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Overview",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "total_hours": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Total Hours",
+            "type": "number"
+          },
+          "year": {
+            "default": 1,
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "UnitContext",
+        "type": "object"
+      },
+      "UnitDetailRequest": {
+        "properties": {
+          "programme": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Programme",
+            "type": "string"
+          },
+          "provider": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "openai",
+              "gemini"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 600000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitContext"
+          }
+        },
+        "required": [
+          "unit",
+          "text"
+        ],
+        "title": "UnitDetailRequest",
         "type": "object"
       },
       "UnitText": {
@@ -62752,6 +63478,1262 @@
         "summary": "List Builtin Tools",
         "tags": [
           "tools"
+        ]
+      }
+    },
+    "/api/tutorpro/assessment": {
+      "post": {
+        "operationId": "assessment_api_tutorpro_assessment_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Assessment Api Tutorpro Assessment Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assessment",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/auth/login": {
+      "post": {
+        "description": "Return a bearer token for the Deep Tutor Pro apps.",
+        "operationId": "login_api_tutorpro_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Login Api Tutorpro Auth Login Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/curriculum/outline": {
+      "post": {
+        "operationId": "curriculum_outline_api_tutorpro_curriculum_outline_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Curriculum Outline Api Tutorpro Curriculum Outline Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Curriculum Outline",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/curriculum/unit": {
+      "post": {
+        "operationId": "curriculum_unit_api_tutorpro_curriculum_unit_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnitDetailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Curriculum Unit Api Tutorpro Curriculum Unit Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Curriculum Unit",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/exam-format": {
+      "post": {
+        "operationId": "exam_format_api_tutorpro_exam_format_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamFormatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Exam Format Api Tutorpro Exam Format Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exam Format",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/notes": {
+      "post": {
+        "operationId": "notes_api_tutorpro_notes_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Notes Api Tutorpro Notes Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Notes",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/ping": {
+      "get": {
+        "operationId": "ping_api_tutorpro_ping_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ping Api Tutorpro Ping Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ping",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/questions": {
+      "post": {
+        "operationId": "questions_api_tutorpro_questions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Questions Api Tutorpro Questions Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Questions",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/revise": {
+      "post": {
+        "operationId": "revise_api_tutorpro_revise_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Revise Api Tutorpro Revise Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revise",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/slides": {
+      "post": {
+        "operationId": "slides_api_tutorpro_slides_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SlidesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Slides Api Tutorpro Slides Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Slides",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/solve": {
+      "post": {
+        "operationId": "solve_api_tutorpro_solve_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Solve Api Tutorpro Solve Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Solve",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/status": {
+      "get": {
+        "operationId": "status_api_tutorpro_status_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Status Api Tutorpro Status Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Status",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/sync": {
+      "get": {
+        "operationId": "sync_get_api_tutorpro_sync_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Sync Get Api Tutorpro Sync Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync Get",
+        "tags": [
+          "tutorpro"
+        ]
+      },
+      "put": {
+        "operationId": "sync_put_api_tutorpro_sync_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Sync Put Api Tutorpro Sync Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync Put",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/sync/history": {
+      "get": {
+        "operationId": "sync_history_api_tutorpro_sync_history_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Sync History Api Tutorpro Sync History Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync History",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/sync/history/{rev}": {
+      "get": {
+        "operationId": "sync_history_item_api_tutorpro_sync_history__rev__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rev",
+            "required": true,
+            "schema": {
+              "title": "Rev",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Sync History Item Api Tutorpro Sync History  Rev  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync History Item",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/sync/meta": {
+      "get": {
+        "operationId": "sync_meta_api_tutorpro_sync_meta_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Sync Meta Api Tutorpro Sync Meta Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync Meta",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/transcribe": {
+      "post": {
+        "operationId": "transcribe_api_tutorpro_transcribe_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dt_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dt Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Transcribe Api Tutorpro Transcribe Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe",
+        "tags": [
+          "tutorpro"
         ]
       }
     },

@@ -51,6 +51,23 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Add the Deep Tutor Pro web app (served at /pro/)
+        if: steps.check.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRO_REPO: ${{ vars.PRO_REPO || 'DeeJayKyle/Deep-Tutor-Pro' }}
+        run: |
+          out=deploy/cloudflare/public
+          mkdir -p "$out" /tmp/pro
+          tag="$(gh release view --repo "$PRO_REPO" --json tagName -q .tagName 2>/dev/null || true)"
+          if [ -n "$tag" ] && gh release download "$tag" --repo "$PRO_REPO" --pattern 'deep-tutor-pro-web-*.zip' --dir /tmp/pro 2>/dev/null; then
+            unzip -q /tmp/pro/*.zip -d "$out/pro"
+            echo "$tag" > "$out/pro/RELEASE.txt"
+            echo "Deep Tutor Pro $tag added at /pro/." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No Deep Tutor Pro web build published yet." | tee "$out/pro-not-published.txt"
+          fi
+
       - name: Deploy the Worker
         if: steps.check.outputs.ready == 'true'
         working-directory: deploy/cloudflare
@@ -72,6 +89,7 @@ jobs:
             echo ""
             echo "- App: $url/companion"
             echo "- DeepTutor: $url/"
+            [ -f deploy/cloudflare/public/pro/index.html ] && echo "- Deep Tutor Pro: $url/pro/"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish the Tutor Companion 1.0 release (first time only)

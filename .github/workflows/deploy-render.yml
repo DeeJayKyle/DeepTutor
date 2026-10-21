@@ -46,4 +46,6 @@ jobs:
           RENDER_REGION: ${{ vars.RENDER_REGION }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
           EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          TUTORPRO_GEMINI_MODEL: ${{ vars.TUTORPRO_GEMINI_MODEL }}
+          TUTORPRO_OPENAI_MODEL: ${{ vars.TUTORPRO_OPENAI_MODEL }}
           DATA_REPO: ${{ vars.DATA_REPO }}

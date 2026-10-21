@@ -78,6 +78,8 @@ def main() -> None:
         "LLM_MODEL",
         "EMBEDDING_MODEL",
         "YOUTUBE_API_KEY",
+        "TUTORPRO_GEMINI_MODEL",
+        "TUTORPRO_OPENAI_MODEL",
     ):
         if env(key):
             env_vars[key] = env(key)

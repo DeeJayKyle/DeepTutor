@@ -563,6 +563,7 @@ from deeptutor.api.routers import (
     subagents,
     system,
     task_board,
+    tutorpro,
     unified_ws,
     video_learning,
     visualizers,
@@ -682,6 +683,8 @@ app.include_router(
 app.include_router(
     companion.router, prefix="/api/companion", tags=["companion"], dependencies=_auth
 )
+app.include_router(tutorpro.public_router, prefix="/api/tutorpro", tags=["tutorpro"])
+app.include_router(tutorpro.router, prefix="/api/tutorpro", tags=["tutorpro"], dependencies=_auth)
 app.include_router(
     question_notebook.router,
     prefix="/api/question-notebook",

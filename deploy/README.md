@@ -17,6 +17,17 @@ installed on your computer.
 
 Tutor Companion is at `<address>/companion`; DeepTutor itself at `<address>/`.
 
+**Deep Tutor Pro** ([DeeJayKyle/Deep-Tutor-Pro](https://github.com/DeeJayKyle/Deep-Tutor-Pro))
+uses this server's `/api/tutorpro` API (curriculum analysis, lecture notes,
+exams, Deep Solve, cloud sync). Its web app is served at `<address>/pro/`:
+each time Deep Tutor Pro publishes a release with a `deep-tutor-pro-web-*.zip`
+asset, **Keep server awake** notices it and re-runs **Deploy to Cloudflare**,
+which adds that build to the Worker. The installed Windows and Android apps
+sign in with a bearer token from `/api/tutorpro/auth/login`; the Worker adds
+CORS headers for their origins. In Deep Tutor Pro, *Settings → AI provider*
+switches between Gemini and OpenAI per request when both keys are set
+(`TUTORPRO_GEMINI_MODEL` / `TUTORPRO_OPENAI_MODEL` override the models).
+
 ## One-time setup: Cloudflare (free, no card)
 
 1. Create a free account at <https://dash.cloudflare.com/sign-up> and open

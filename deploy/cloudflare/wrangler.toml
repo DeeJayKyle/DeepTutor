@@ -7,3 +7,8 @@ workers_dev = true
 
 [vars]
 UPSTREAM = "https://deeptutor-ia8s.onrender.com"
+
+# Deep Tutor Pro's web build (downloaded from its latest GitHub release by the
+# deploy workflow) is served from here at /pro/.
+[assets]
+directory = "./public"
