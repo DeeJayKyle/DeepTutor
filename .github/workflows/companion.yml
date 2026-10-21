@@ -11,6 +11,8 @@ on:
       - "web/companion-tests/**"
       - "deeptutor/api/routers/companion.py"
       - "deeptutor/api/routers/companion_schools.py"
+      - "deeptutor/api/routers/tutorpro.py"
+      - "tests/api/test_tutorpro_router.py"
       - "tests/api/test_companion_router.py"
       - "tests/api/test_companion_schools.py"
       - ".github/workflows/companion.yml"
@@ -20,6 +22,8 @@ on:
       - "web/companion-tests/**"
       - "deeptutor/api/routers/companion.py"
       - "deeptutor/api/routers/companion_schools.py"
+      - "deeptutor/api/routers/tutorpro.py"
+      - "tests/api/test_tutorpro_router.py"
       - "tests/api/test_companion_router.py"
       - "tests/api/test_companion_schools.py"
       - ".github/workflows/companion.yml"
@@ -54,7 +58,7 @@ jobs:
           pip install -e . --no-deps
 
       - name: Router tests
-        run: python -m pytest tests/api/test_companion_router.py tests/api/test_companion_schools.py -q
+        run: python -m pytest tests/api/test_companion_router.py tests/api/test_companion_schools.py tests/api/test_tutorpro_router.py -q
 
       - name: Install web dependencies
         working-directory: web
