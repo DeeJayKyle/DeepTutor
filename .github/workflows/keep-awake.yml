@@ -44,3 +44,21 @@ jobs:
             gh workflow run deploy-cloudflare.yml --ref main --repo "$GITHUB_REPOSITORY"
             echo "Started Deploy to Cloudflare."
           fi
+
+      - name: Publish a new Deep Tutor Pro web release at /pro/
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PRO_REPO: ${{ vars.PRO_REPO || 'DeeJayKyle/Deep-Tutor-Pro' }}
+        run: |
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || exit 0
+          latest="$(gh release view --repo "$PRO_REPO" --json tagName,assets -q 'select([.assets[].name | startswith("deep-tutor-pro-web-")] | any) | .tagName' 2>/dev/null || true)"
+          [ -n "$latest" ] || { echo "No Deep Tutor Pro web release yet."; exit 0; }
+          url="$(python3 deploy/cloudflare/app_url.py)"
+          live="$(curl -s --max-time 60 "$url/pro/RELEASE.txt" || true)"
+          echo "Deep Tutor Pro: latest $latest, live '${live}'"
+          if [ "$live" != "$latest" ] && ! gh run list --repo "$GITHUB_REPOSITORY" --workflow deploy-cloudflare.yml --status in_progress --json databaseId -q '.[0].databaseId' | grep -q .; then
+            gh workflow run deploy-cloudflare.yml --ref main --repo "$GITHUB_REPOSITORY"
+            echo "Started Deploy to Cloudflare for Deep Tutor Pro $latest."
+          fi
