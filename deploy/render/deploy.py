@@ -80,6 +80,7 @@ def main() -> None:
         "YOUTUBE_API_KEY",
         "TUTORPRO_GEMINI_MODEL",
         "TUTORPRO_OPENAI_MODEL",
+        "TUTORPRO_SELF_SIGNUP",
     ):
         if env(key):
             env_vars[key] = env(key)

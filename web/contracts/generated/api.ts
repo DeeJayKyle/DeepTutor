@@ -10650,6 +10650,26 @@ export interface paths {
     readonly patch?: never;
     readonly trace?: never;
   };
+  readonly "/api/tutorpro/auth/register": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    /**
+     * Register
+     * @description Create a tutor account and return a bearer token for it.
+     */
+    readonly post: operations["register_api_tutorpro_auth_register_post"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
   readonly "/api/tutorpro/curriculum/outline": {
     readonly parameters: {
       readonly query?: never;
@@ -16052,6 +16072,13 @@ export interface components {
         readonly [key: string]: unknown;
       } | null;
     };
+    /** RegisterBody */
+    readonly RegisterBody: {
+      /** Password */
+      readonly password: string;
+      /** Username */
+      readonly username: string;
+    };
     /**
      * RegisterRequest
      * @description Payload for the POST /register endpoint.
@@ -18744,6 +18771,7 @@ export type SchemaRebuildBookRequest =
   components["schemas"]["RebuildBookRequest"];
 export type SchemaRegenerateBlockRequest =
   components["schemas"]["RegenerateBlockRequest"];
+export type SchemaRegisterBody = components["schemas"]["RegisterBody"];
 export type SchemaRegisterRequest = components["schemas"]["RegisterRequest"];
 export type SchemaRegistryEditPayload =
   components["schemas"]["RegistryEditPayload"];
@@ -42649,6 +42677,41 @@ export interface operations {
     readonly responses: {
       /** @description Successful Response */
       readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": {
+            readonly [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      readonly 422: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  readonly register_api_tutorpro_auth_register_post: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+      readonly content: {
+        readonly "application/json": components["schemas"]["RegisterBody"];
+      };
+    };
+    readonly responses: {
+      /** @description Successful Response */
+      readonly 201: {
         headers: {
           readonly [name: string]: unknown;
         };

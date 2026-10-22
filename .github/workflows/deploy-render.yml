@@ -48,4 +48,5 @@ jobs:
           EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
           TUTORPRO_GEMINI_MODEL: ${{ vars.TUTORPRO_GEMINI_MODEL }}
           TUTORPRO_OPENAI_MODEL: ${{ vars.TUTORPRO_OPENAI_MODEL }}
+          TUTORPRO_SELF_SIGNUP: ${{ vars.TUTORPRO_SELF_SIGNUP }}
           DATA_REPO: ${{ vars.DATA_REPO }}

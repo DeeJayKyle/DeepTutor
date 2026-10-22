@@ -9211,6 +9211,28 @@
         "title": "RegenerateBlockRequest",
         "type": "object"
       },
+      "RegisterBody": {
+        "properties": {
+          "password": {
+            "maxLength": 500,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "RegisterBody",
+        "type": "object"
+      },
       "RegisterRequest": {
         "description": "Payload for the POST /register endpoint.",
         "properties": {
@@ -63597,6 +63619,50 @@
           }
         },
         "summary": "Login",
+        "tags": [
+          "tutorpro"
+        ]
+      }
+    },
+    "/api/tutorpro/auth/register": {
+      "post": {
+        "description": "Create a tutor account and return a bearer token for it.",
+        "operationId": "register_api_tutorpro_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Register Api Tutorpro Auth Register Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register",
         "tags": [
           "tutorpro"
         ]
