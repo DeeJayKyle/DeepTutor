@@ -374,3 +374,100 @@ def test_sync_versions_conflicts_and_history(client):
     damaged = _sync_body({"v": 4}, 3)
     damaged["sha256"] = "0" * 64
     assert client.put("/api/tutorpro/sync", json=damaged).status_code == 400
+
+
+@pytest.fixture
+def accounts(monkeypatch):
+    """Auth switched on with an in-memory user store holding the owner (admin)."""
+    from deeptutor.services import auth
+
+    store: dict[str, dict] = {"owner": {"pw": "owner-pass", "role": "admin"}}
+
+    def add_user(username, password, role="user", preset="standard"):
+        store[username] = {"pw": password, "role": role if store else "admin"}
+
+    def authenticate(username, password):
+        rec = store.get(username)
+        if not rec or rec["pw"] != password:
+            return None
+        return auth.TokenPayload(username=username, role=rec["role"], user_id=f"id-{username}")
+
+    monkeypatch.setattr(auth, "AUTH_ENABLED", True)
+    monkeypatch.setattr(auth, "POCKETBASE_ENABLED", False)
+    monkeypatch.setattr(auth, "add_user", add_user)
+    monkeypatch.setattr(auth, "authenticate", authenticate)
+    monkeypatch.setattr(auth, "delete_user", lambda u: store.pop(u, None) is not None)
+    monkeypatch.setattr(auth, "is_first_user", lambda: not store)
+    monkeypatch.setattr(
+        auth, "list_users", lambda: [{"username": u, "role": r["role"]} for u, r in store.items()]
+    )
+    monkeypatch.setattr(auth, "create_token", lambda u, r, i: f"token-{u}-{r}")
+    monkeypatch.delenv("TUTORPRO_SELF_SIGNUP", raising=False)
+    monkeypatch.setattr(tutorpro, "_signups", [])
+    return store
+
+
+def test_tutors_can_create_their_own_account_and_sign_in(client, accounts):
+    assert client.get("/api/tutorpro/ping").json()["signup"] is True
+    res = client.post(
+        "/api/tutorpro/auth/register", json={"username": "amina.n", "password": "longenough"}
+    )
+    assert res.status_code == 201
+    body = res.json()
+    assert body["token"] == "token-amina.n-user" and body["role"] == "user"
+    assert accounts["amina.n"]["role"] == "user"
+    login = client.post(
+        "/api/tutorpro/auth/login", json={"username": "amina.n", "password": "longenough"}
+    )
+    assert login.json()["token"] == "token-amina.n-user"
+
+
+def test_sign_up_refuses_taken_names_bad_input_and_closed_servers(client, accounts, monkeypatch):
+    def reg(username, password="longenough"):
+        return client.post(
+            "/api/tutorpro/auth/register", json={"username": username, "password": password}
+        )
+
+    assert reg("OWNER").status_code == 409  # names are unique ignoring case
+    assert reg("ab").status_code == 422
+    assert reg("has space").status_code == 422
+    assert reg("tutor@school.ac.ke", "short").status_code == 422
+    assert reg("tutor@school.ac.ke").status_code == 201
+
+    monkeypatch.setenv("TUTORPRO_SELF_SIGNUP", "0")
+    assert client.get("/api/tutorpro/ping").json()["signup"] is False
+    assert reg("another").status_code == 403
+
+
+def test_a_visitor_can_never_become_the_first_administrator(client, accounts):
+    accounts.clear()
+    res = client.post(
+        "/api/tutorpro/auth/register", json={"username": "visitor", "password": "longenough"}
+    )
+    assert res.status_code == 403
+    assert accounts == {}
+
+
+def test_sign_up_is_rate_limited_per_visitor(client, accounts):
+    headers = {"cf-connecting-ip": "203.0.113.9"}
+    for i in range(tutorpro.SIGNUP_PER_CLIENT_PER_HOUR):
+        assert (
+            client.post(
+                "/api/tutorpro/auth/register",
+                json={"username": f"tutor{i}", "password": "longenough"},
+                headers=headers,
+            ).status_code
+            == 201
+        )
+    blocked = client.post(
+        "/api/tutorpro/auth/register",
+        json={"username": "tutor99", "password": "longenough"},
+        headers=headers,
+    )
+    assert blocked.status_code == 429 and "tutor99" not in accounts
+    other = client.post(
+        "/api/tutorpro/auth/register",
+        json={"username": "tutor99", "password": "longenough"},
+        headers={"cf-connecting-ip": "198.51.100.4"},
+    )
+    assert other.status_code == 201

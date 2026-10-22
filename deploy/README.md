@@ -24,7 +24,13 @@ each time Deep Tutor Pro publishes a release with a `deep-tutor-pro-web-*.zip`
 asset, **Keep server awake** notices it and re-runs **Deploy to Cloudflare**,
 which adds that build to the Worker. The installed Windows and Android apps
 sign in with a bearer token from `/api/tutorpro/auth/login`; the Worker adds
-CORS headers for their origins. In Deep Tutor Pro, *Settings → AI provider*
+CORS headers for their origins. Tutors can create their own account from the
+app's sign-in screen (`/api/tutorpro/auth/register`): each gets an ordinary
+user account with a private workspace and cloud copy, never an administrator
+one, and sign-up is limited to 5 accounts per visitor per hour. Set the
+repository variable `TUTORPRO_SELF_SIGNUP` to `0` and redeploy to close it. The
+administrator login is `ADMIN_USERNAME` (default `admin`) with the
+`ADMIN_PASSWORD` secret. In Deep Tutor Pro, *Settings → AI provider*
 switches between Gemini and OpenAI per request when both keys are set
 (`TUTORPRO_GEMINI_MODEL` / `TUTORPRO_OPENAI_MODEL` override the models).
 

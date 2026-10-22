@@ -35,6 +35,7 @@ import logging
 import os
 from pathlib import Path
 import re
+import time
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -620,6 +621,11 @@ class LoginBody(BaseModel):
     password: str = Field(min_length=1, max_length=500)
 
 
+class RegisterBody(BaseModel):
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=8, max_length=500)
+
+
 class SyncPut(BaseModel):
     base_rev: int = Field(ge=0)
     device: str = Field(default="", max_length=120)
@@ -951,6 +957,7 @@ async def ping() -> dict[str, Any]:
         "app": "deep-tutor-pro",
         "api": API_VERSION,
         "auth_required": bool(AUTH_ENABLED),
+        "signup": bool(AUTH_ENABLED) and signup_open(),
     }
 
 
@@ -988,6 +995,90 @@ async def login(body: LoginBody, request: Request) -> dict[str, Any]:
         "token": token,
         "username": username,
         "role": role,
+        "auth": True,
+        "expires_hours": TOKEN_EXPIRE_HOURS,
+    }
+
+
+# Self sign-up for tutors. Accounts made here are always ordinary users with
+# their own private workspace and cloud copy; the server owner stays the only
+# administrator. Set TUTORPRO_SELF_SIGNUP=0 to close it.
+_USERNAME_RE = re.compile(r"^(?:[A-Za-z0-9_.-]{3,64}|[^@\s]{1,64}@[^@\s]+\.[^@\s]+)$")
+SIGNUP_PER_CLIENT_PER_HOUR = 5
+SIGNUP_PER_HOUR = 60
+_signups: list[tuple[float, str]] = []
+
+
+def signup_open() -> bool:
+    flag = os.environ.get("TUTORPRO_SELF_SIGNUP", "1").strip().lower()
+    return flag not in {"0", "false", "no", "off"}
+
+
+def _client_key(request: Request) -> str:
+    # Behind the Cloudflare Worker the visitor's address is in CF-Connecting-IP.
+    forwarded = request.headers.get("cf-connecting-ip", "").strip()
+    return forwarded or (request.client.host if request.client else "unknown")
+
+
+def _allow_signup(client: str) -> bool:
+    now = time.monotonic()
+    _signups[:] = [(t, c) for t, c in _signups if now - t < 3600]
+    if len(_signups) >= SIGNUP_PER_HOUR:
+        return False
+    return sum(1 for _, c in _signups if c == client) < SIGNUP_PER_CLIENT_PER_HOUR
+
+
+@public_router.post("/auth/register", status_code=201)
+async def register(body: RegisterBody, request: Request) -> dict[str, Any]:
+    """Create a tutor account and return a bearer token for it."""
+    from deeptutor.api.routers.auth import _require_private_frontend
+    from deeptutor.services.auth import (
+        AUTH_ENABLED,
+        POCKETBASE_ENABLED,
+        TOKEN_EXPIRE_HOURS,
+        add_user,
+        authenticate,
+        create_token,
+        delete_user,
+        is_first_user,
+        list_users,
+    )
+
+    if not AUTH_ENABLED:
+        raise HTTPException(400, "This server does not use accounts; sign in with any name.")
+    if not signup_open() or POCKETBASE_ENABLED:
+        raise HTTPException(403, "Sign-up is closed on this server. Ask its owner for an account.")
+    _require_private_frontend(request)
+    username = body.username.strip()
+    if not _USERNAME_RE.match(username):
+        raise HTTPException(
+            422,
+            "Use 3–64 letters, numbers, dots, dashes or underscores, or an email address.",
+        )
+    if is_first_user():
+        # Never let a visitor become the first (administrator) account.
+        raise HTTPException(
+            403, "This server has no administrator yet; its owner must set it up first."
+        )
+    if any(str(u.get("username", "")).lower() == username.lower() for u in list_users()):
+        raise HTTPException(409, "That username is taken. Choose another, or sign in.")
+    client = _client_key(request)
+    if not _allow_signup(client):
+        raise HTTPException(429, "Too many new accounts from here. Try again in an hour.")
+    _signups.append((time.monotonic(), client))
+
+    add_user(username, body.password, role="user")
+    user = authenticate(username, body.password)
+    if user is None or user.role != "user":
+        delete_user(username)
+        logger.error("Deep Tutor Pro sign-up for '%s' did not produce a user account", username)
+        raise HTTPException(500, "The account could not be created. Please try again.")
+    logger.info("Deep Tutor Pro account created for '%s'", username)
+    return {
+        "ok": True,
+        "token": create_token(user.username, user.role, user.user_id),
+        "username": user.username,
+        "role": user.role,
         "auth": True,
         "expires_hours": TOKEN_EXPIRE_HOURS,
     }
